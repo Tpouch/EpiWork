@@ -148,45 +148,74 @@ reject/feedback-text flow in the POC — unlock is a one-way action.
 
 **Visual identity** — the user asked to match the look of Epitech's own
 student portal (my.epitech.eu), so the design system below follows that
-reference rather than a generic dashboard palette. Key traits carried over:
+reference rather than a generic dashboard palette. Values below were read
+directly from the live site's computed styles (colors, fonts, weights),
+not estimated from screenshots, so they're exact. Key traits carried over:
 a dark, near-black surface; a terminal/code vocabulary for structural
-chrome (`< SECTION />` tags, trailing underscores on stat labels, bracket
-motifs); a bold condensed display face for headline moments; monospace for
-labels/tags; and a multi-color accent system where each category/state gets
-its own consistent color rather than one brand color used everywhere.
+chrome (`< SECTION />` tags, trailing underscores on stat labels — the
+reference site literally renders the user's name as `Hello, Thibault_`,
+underscore included as text, like a terminal cursor); an uppercase
+condensed display face for headline moments; monospace for labels/tags;
+and a small set of saturated neon accent colors against near-black.
 
-- Background: `#0A0A0C` (page), surfaces (sidebar, cards) `#14141A`,
-  borders/dividers `#242430`
-- Text: primary `#F5F5F7`, secondary/muted `#9A9CA8`
-- Primary accent (periwinkle/indigo) `#7C83FB` — active nav item, primary
-  buttons, hero banner fill
-- Signal colors, one per state, used consistently across the whole app
-  (nav icons, list accents, dashboard rail dots, badges):
-  - Orange `#FF7A50` — needs attention / urgent (maps to "needs help")
-  - Green `#5FD97A` — done / success / progress fill
-  - Blue-cyan `#4FC8E8` — awaiting review (kept distinct from both the
-    primary periwinkle and the orange "needs help" signal)
-  - Magenta `#E85FD1` — section-marker bars only (purely structural, not a
-    state)
-  - Destructive: `#EF4B4B` (remove workshop/step)
-- Typography: a bold condensed grotesk (e.g. **Archivo Black** / **Anton**)
-  for hero headlines and page titles only; a monospace face (e.g. **IBM
-  Plex Mono** / **JetBrains Mono**) for tags, stat labels, timestamps, and
-  the `< … />` bracket motif; a plain grotesk (e.g. **Inter**) for body
-  text and everything else — three roles, not blended, so the display face
-  stays reserved for genuine hero moments
+- Background: `#181818` (page); surfaces (sidebar, cards, rows) step up in
+  three shades — `#141414` (recessed), `#242424` (card/row), `#2E2E2E`
+  (hover/elevated)
+- Text: primary `#FFFFFF`; secondary/muted `rgba(255,255,255,0.55)`
+- Primary accent (periwinkle) `#809DFD` — active nav item, primary button
+  icon/text (buttons themselves are white pills with periwinkle content),
+  hero banner fill; a paler tint `#B8C0E8` for decorative/low-emphasis use
+  (e.g. the hero's corner squares)
+- Signal colors — the reference site doesn't reuse one hue per semantic
+  state (its category icons are just varied), so EpiWork defines its own
+  consistent mapping using colors pulled from the same neon-on-black
+  family, reused everywhere a status appears (nav badges, rail dots, feed
+  borders):
+  - Orange `#FF5F3A` (text tint `#FF9980`, background tint
+    `rgba(255,95,58,0.14)`) — needs attention / urgent, maps to "needs
+    help" (this is the exact color the reference site uses for its own
+    "TODAY_" urgency marker)
+  - Green `#00FF97` — done / success / progress fill (matches the
+    reference site's own bright green accent, e.g. its live-commit
+    indicator)
+  - Cyan `#29D9FF` — awaiting review (new addition for EpiWork's own
+    semantics; not lifted from the reference site, but matches its
+    saturated-neon-on-black language and stays clearly distinct from both
+    periwinkle and orange)
+  - Magenta `#FF1EF7` — section-marker bars only (purely structural, not a
+    state; exact value from the reference site's own section-heading bar)
+  - Destructive: `#EF4B4B`
+- Typography (all three read from the live site):
+  - **Anton** — hero headlines and page titles only, always uppercase,
+    letter-spacing ~0.01em (the reference renders "HELLO, THIBAULT" this
+    way at 52px)
+  - **Space Mono** — tags, stat labels, timestamps, the `< … />` bracket
+    motif; uppercase with wide tracking (~1.2px at small sizes) for
+    section tags, tighter for inline badges
+  - **IBM Plex Sans** — body text, buttons, nav items, everything else
+  - Three roles, not blended — the display face stays reserved for
+    genuine hero moments
 - Structural motifs, reused across admin and student views:
-  - Section headers as `< SECTION NAME />` in monospace, small and muted
-  - A short colored vertical bar beside major section headings (color
-    signals nothing semantic here — purely a rhythm device, like the
-    reference site's magenta bar)
-  - Stat/metric labels in monospace with a trailing underscore
-    ("STEPS DONE_", "NEEDS HELP_"), big bold number beneath
+  - Section headers as `< SECTION NAME />` in Space Mono, small and muted
+    (55% white)
+  - A short magenta vertical bar beside major section headings (purely a
+    rhythm device, not semantic)
+  - Stat/metric labels in Space Mono with a trailing underscore
+    ("STEPS DONE_", "NEEDS HELP_"), big bold number beneath in IBM Plex
+    Sans
   - List rows (priority feed items, deadline-style items) use a colored
     left border matching the row's signal color rather than a filled badge
-- No emoji icons; consistent SVG icon set (e.g. Lucide) throughout
+  - Buttons: white pill (`#FFFFFF` background), periwinkle icon/label,
+    4px border radius
+- **Implementation note:** the reference site is built on **Mantine**
+  (React component library) — adopting Mantine for EpiWork's frontend with
+  a custom dark theme (the tokens above) gets a large part of this
+  identity "for free" (consistent radii, focus states, form controls) and
+  is worth doing instead of hand-rolling equivalents in plain CSS.
+- No emoji icons; consistent SVG icon set (e.g. Lucide, or Mantine's
+  bundled Tabler icons) throughout
 - Standard accessibility floor, adapted for dark mode: 4.5:1 text contrast
-  against `#0A0A0C`/`#14141A`, visible focus rings (the periwinkle accent
+  against `#181818`/`#242424`, visible focus rings (the periwinkle accent
   works well here), 44px minimum touch targets, `prefers-reduced-motion`
   respected
 
