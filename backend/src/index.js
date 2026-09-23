@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const authRoutes = require('./routes/auth');
 const workshopRoutes = require('./routes/workshops');
+const stepRoutes = require('./routes/steps');
 const { attachUser } = require('./middleware/auth');
 
 const app = express();
@@ -11,6 +12,7 @@ app.use(attachUser);
 
 app.use('/api', authRoutes);
 app.use('/api', workshopRoutes);
+app.use('/api', stepRoutes);
 
 const PORT = process.env.PORT || 4000;
 if (require.main === module) {
