@@ -1,0 +1,50 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int            @id @default(autoincrement())
+  name         String
+  role         String
+  stepProgress StepProgress[]
+}
+
+model Workshop {
+  id          Int    @id @default(autoincrement())
+  title       String
+  description String
+  steps       Step[]
+}
+
+model Step {
+  id              Int            @id @default(autoincrement())
+  workshopId      Int
+  workshop        Workshop       @relation(fields: [workshopId], references: [id])
+  order           Int
+  title           String
+  content         String
+  isCheckpoint    Boolean        @default(false)
+  questionType    String?
+  questionPrompt  String?
+  questionOptions String?
+  progress        StepProgress[]
+}
+
+model StepProgress {
+  id              Int      @id @default(autoincrement())
+  studentId       Int
+  student         User     @relation(fields: [studentId], references: [id])
+  stepId          Int
+  step            Step     @relation(fields: [stepId], references: [id])
+  status          String   @default("locked")
+  submittedAnswer String?
+  helpRequested   Boolean  @default(false)
+  updatedAt       DateTime @updatedAt
+
+  @@unique([studentId, stepId])
+}

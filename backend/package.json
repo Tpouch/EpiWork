@@ -6,19 +6,19 @@
   "scripts": {
     "dev": "node src/index.js",
     "seed": "node prisma/seed.js",
-    "test": "DATABASE_URL=file:./prisma/test.db npx prisma migrate deploy && DATABASE_URL=file:./prisma/test.db npx jest --runInBand"
+    "test": "DATABASE_URL=file:./prisma/test.db pnpm exec prisma migrate deploy && DATABASE_URL=file:./prisma/test.db pnpm exec jest --runInBand"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "@prisma/client": "^7.10.0",
+    "@prisma/client": "^5.0.0",
     "cors": "^2.8.6",
     "express": "^5.2.1"
   },
   "devDependencies": {
     "jest": "^30.5.2",
-    "prisma": "^8.0.0-rc.15"
+    "prisma": "^5.0.0"
   }
 }
