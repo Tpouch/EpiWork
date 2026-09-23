@@ -146,26 +146,61 @@ reject/feedback-text flow in the POC — unlock is a one-way action.
 
 ## 7. UI design
 
-**Visual design system** (derived from the technical/operations nature of
-the tool — Epitech students and coaches are a technical audience, and the
-core admin need is live monitoring, not marketing):
+**Visual identity** — the user asked to match the look of Epitech's own
+student portal (my.epitech.eu), so the design system below follows that
+reference rather than a generic dashboard palette. Key traits carried over:
+a dark, near-black surface; a terminal/code vocabulary for structural
+chrome (`< SECTION />` tags, trailing underscores on stat labels, bracket
+motifs); a bold condensed display face for headline moments; monospace for
+labels/tags; and a multi-color accent system where each category/state gets
+its own consistent color rather than one brand color used everywhere.
 
-- Primary: `#1E40AF` (blue) — primary actions, active/in-progress state
-- Accent: `#D97706` (amber) — "needs help" signal, warnings
-- Foreground text: `#1E3A8A` on light backgrounds
-- Background: `#F8FAFC`, muted surfaces `#E9EEF6`, borders `#DBEAFE`
-- Destructive: `#DC2626` (remove workshop/step, reject actions)
-- "Awaiting review" signal color: a distinct blue-secondary `#3B82F6`
-  (kept separate from primary blue and from the amber "needs help" color so
-  the two admin-attention states are never confused)
-- "Done" signal color: green `#4C8065` (used consistently in dashboard rails
-  and feed)
-- Typography: **Fira Sans** for UI text (labels, body, headings), **Fira
-  Code** for tabular/data labels (step numbers, counts, timestamps) — ties
-  visually to a coding-school audience without becoming a themed gimmick
-- No emoji icons; use a consistent SVG icon set (e.g. Lucide) throughout
-- Standard accessibility floor: 4.5:1 text contrast, visible focus rings,
-  44px minimum touch targets, `prefers-reduced-motion` respected
+- Background: `#0A0A0C` (page), surfaces (sidebar, cards) `#14141A`,
+  borders/dividers `#242430`
+- Text: primary `#F5F5F7`, secondary/muted `#9A9CA8`
+- Primary accent (periwinkle/indigo) `#7C83FB` — active nav item, primary
+  buttons, hero banner fill
+- Signal colors, one per state, used consistently across the whole app
+  (nav icons, list accents, dashboard rail dots, badges):
+  - Orange `#FF7A50` — needs attention / urgent (maps to "needs help")
+  - Green `#5FD97A` — done / success / progress fill
+  - Blue-cyan `#4FC8E8` — awaiting review (kept distinct from both the
+    primary periwinkle and the orange "needs help" signal)
+  - Magenta `#E85FD1` — section-marker bars only (purely structural, not a
+    state)
+  - Destructive: `#EF4B4B` (remove workshop/step)
+- Typography: a bold condensed grotesk (e.g. **Archivo Black** / **Anton**)
+  for hero headlines and page titles only; a monospace face (e.g. **IBM
+  Plex Mono** / **JetBrains Mono**) for tags, stat labels, timestamps, and
+  the `< … />` bracket motif; a plain grotesk (e.g. **Inter**) for body
+  text and everything else — three roles, not blended, so the display face
+  stays reserved for genuine hero moments
+- Structural motifs, reused across admin and student views:
+  - Section headers as `< SECTION NAME />` in monospace, small and muted
+  - A short colored vertical bar beside major section headings (color
+    signals nothing semantic here — purely a rhythm device, like the
+    reference site's magenta bar)
+  - Stat/metric labels in monospace with a trailing underscore
+    ("STEPS DONE_", "NEEDS HELP_"), big bold number beneath
+  - List rows (priority feed items, deadline-style items) use a colored
+    left border matching the row's signal color rather than a filled badge
+- No emoji icons; consistent SVG icon set (e.g. Lucide) throughout
+- Standard accessibility floor, adapted for dark mode: 4.5:1 text contrast
+  against `#0A0A0C`/`#14141A`, visible focus rings (the periwinkle accent
+  works well here), 44px minimum touch targets, `prefers-reduced-motion`
+  respected
+
+This changes only the visual system — the structural layout decisions
+already validated (split-column step page, progress-rail-plus-priority-feed
+admin home) carry over unchanged, just restyled dark with these tokens
+(e.g. the progress rail's dot colors map directly onto the signal colors
+above: orange/blue-cyan/green).
+
+**Trademark note:** this deliberately echoes the aesthetic of Epitech's own
+portal for visual consistency as an internal/student tool, not to publish
+or claim official affiliation. Don't reuse Epitech's actual logo file or
+wordmark asset as-is; the bracket motif above is recreated generically
+(`{ EPIWORK }` or similar), not copied pixel-for-pixel.
 
 **Step page (student view)** — validated via mockup:
 Split-column layout on tablet/desktop: subject/instructions on the left
