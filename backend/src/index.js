@@ -4,6 +4,7 @@ const authRoutes = require('./routes/auth');
 const workshopRoutes = require('./routes/workshops');
 const stepRoutes = require('./routes/steps');
 const progressRoutes = require('./routes/progress');
+const sessionRoutes = require('./routes/session');
 const { attachUser } = require('./middleware/auth');
 
 const app = express();
@@ -16,6 +17,7 @@ app.use('/api', authRoutes);
 app.use('/api', workshopRoutes);
 app.use('/api', stepRoutes);
 app.use('/api', progressRoutes);
+app.use('/api', sessionRoutes);
 
 const PORT = process.env.PORT || 4000;
 if (require.main === module) {
