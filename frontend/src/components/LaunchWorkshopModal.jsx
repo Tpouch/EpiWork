@@ -5,19 +5,15 @@ import { stepsSummary } from '../lib/workshopMeta';
 import { api } from '../api';
 import { cn } from '@/lib/utils';
 
-export default function LaunchWorkshopModal({ open, onClose, onLaunched }) {
+function WorkshopPicker({ onLaunched }) {
   const [workshops, setWorkshops] = useState(null);
   const [selectedId, setSelectedId] = useState(null);
   const [error, setError] = useState('');
   const [launching, setLaunching] = useState(false);
 
   useEffect(() => {
-    if (!open) return;
-    setWorkshops(null);
-    setSelectedId(null);
-    setError('');
     api.listWorkshops().then(setWorkshops).catch((err) => setError(err.message));
-  }, [open]);
+  }, []);
 
   const selected = workshops?.find((w) => w.id === selectedId);
 
@@ -34,37 +30,43 @@ export default function LaunchWorkshopModal({ open, onClose, onLaunched }) {
   }
 
   return (
+    <div className="flex flex-col gap-2">
+      {!workshops && !error && <p>Loading...</p>}
+      {workshops?.length === 0 && <p className="opacity-70">No workshops yet. Create one in Workshops first.</p>}
+      {workshops?.map((workshop) => {
+        const empty = workshop.steps.length === 0;
+        return (
+          <button
+            key={workshop.id}
+            type="button"
+            disabled={empty}
+            onClick={() => setSelectedId(workshop.id)}
+            aria-pressed={selectedId === workshop.id}
+            className={cn(
+              'flex items-center gap-3 border-2 border-brutal-ink bg-white p-3 text-left cursor-pointer disabled:cursor-not-allowed disabled:opacity-50',
+              selectedId === workshop.id && 'outline-3 outline-offset-1 outline-brutal-blue',
+            )}
+          >
+            <span className="text-2xl" aria-hidden="true">{workshop.icon}</span>
+            <span>
+              <span className="block font-semibold">{workshop.title}</span>
+              <span className="block text-xs opacity-60">{empty ? 'No steps yet' : stepsSummary(workshop)}</span>
+            </span>
+          </button>
+        );
+      })}
+      {error && <p role="alert" className="text-sm text-brutal-red">{error}</p>}
+      <Button onClick={launch} disabled={!selected || launching} className="mt-2 w-full">
+        {launching ? 'Launching...' : selected ? `Launch ${selected.title}` : 'Pick a workshop'}
+      </Button>
+    </div>
+  );
+}
+
+export default function LaunchWorkshopModal({ open, onClose, onLaunched }) {
+  return (
     <Modal open={open} onClose={onClose} title="Launch a workshop">
-      <div className="flex flex-col gap-2">
-        {!workshops && !error && <p>Loading...</p>}
-        {workshops?.length === 0 && <p className="opacity-70">No workshops yet. Create one in Workshops first.</p>}
-        {workshops?.map((workshop) => {
-          const empty = workshop.steps.length === 0;
-          return (
-            <button
-              key={workshop.id}
-              type="button"
-              disabled={empty}
-              onClick={() => setSelectedId(workshop.id)}
-              aria-pressed={selectedId === workshop.id}
-              className={cn(
-                'flex items-center gap-3 border-2 border-brutal-ink bg-white p-3 text-left cursor-pointer disabled:cursor-not-allowed disabled:opacity-50',
-                selectedId === workshop.id && 'outline-3 outline-offset-1 outline-brutal-blue',
-              )}
-            >
-              <span className="text-2xl" aria-hidden="true">{workshop.icon}</span>
-              <span>
-                <span className="block font-semibold">{workshop.title}</span>
-                <span className="block text-xs opacity-60">{empty ? 'No steps yet' : stepsSummary(workshop)}</span>
-              </span>
-            </button>
-          );
-        })}
-        {error && <p role="alert" className="text-sm text-brutal-red">{error}</p>}
-        <Button onClick={launch} disabled={!selected || launching} className="mt-2 w-full">
-          {launching ? 'Launching...' : selected ? `Launch ${selected.title}` : 'Pick a workshop'}
-        </Button>
-      </div>
+      {open && <WorkshopPicker onLaunched={onLaunched} />}
     </Modal>
   );
 }

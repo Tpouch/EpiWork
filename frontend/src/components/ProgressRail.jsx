@@ -10,7 +10,7 @@ const STATUS_STYLES = {
 const HELP_STYLE = { className: 'bg-brutal-orange text-brutal-ink', label: 'needs help' };
 const LEGEND = [STATUS_STYLES.available, STATUS_STYLES.pending_review, HELP_STYLE, STATUS_STYLES.done];
 
-export function initials(name) {
+function initials(name) {
   const words = name.trim().split(/\s+/).filter(Boolean);
   if (words.length === 0) return '?';
   if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
