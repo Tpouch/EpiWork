@@ -7,6 +7,15 @@ services:
       - DATABASE_URL=file:./prisma/dev.db
     volumes:
       - backend-prisma:/app/prisma
+    develop:
+      watch:
+        - action: sync+restart
+          path: ./backend/src
+          target: /app/src
+        - action: rebuild
+          path: ./backend/package.json
+        - action: rebuild
+          path: ./backend/pnpm-lock.yaml
 
   frontend:
     build: ./frontend
@@ -16,6 +25,18 @@ services:
       - VITE_API_PROXY_TARGET=http://backend:4000
     depends_on:
       - backend
+    develop:
+      watch:
+        - action: sync
+          path: ./frontend/src
+          target: /app/src
+        - action: sync
+          path: ./frontend/index.html
+          target: /app/index.html
+        - action: rebuild
+          path: ./frontend/package.json
+        - action: rebuild
+          path: ./frontend/pnpm-lock.yaml
 
 volumes:
   backend-prisma:
