@@ -7,17 +7,35 @@ datasource db {
 }
 
 model User {
-  id           Int            @id @default(autoincrement())
-  name         String
-  role         String
-  stepProgress StepProgress[]
+  id             Int             @id @default(autoincrement())
+  name           String
+  email          String?         @unique
+  role           String
+  stepProgress   StepProgress[]
+  participations Participation[]
 }
 
 model Workshop {
-  id          Int    @id @default(autoincrement())
-  title       String
-  description String
-  steps       Step[]
+  id             Int             @id @default(autoincrement())
+  title          String
+  description    String
+  icon           String          @default("📘")
+  isActive       Boolean         @default(false)
+  joinCode       String?
+  launchedAt     DateTime?
+  steps          Step[]
+  participations Participation[]
+}
+
+model Participation {
+  id         Int      @id @default(autoincrement())
+  studentId  Int
+  student    User     @relation(fields: [studentId], references: [id])
+  workshopId Int
+  workshop   Workshop @relation(fields: [workshopId], references: [id])
+  joinedAt   DateTime @default(now())
+
+  @@unique([studentId, workshopId])
 }
 
 model Step {

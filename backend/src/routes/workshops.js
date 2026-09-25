@@ -28,6 +28,7 @@ router.patch('/workshops/:id', requireAdmin, async (req, res) => {
 
 router.delete('/workshops/:id', requireAdmin, async (req, res) => {
   const workshopId = Number(req.params.id);
+  await prisma.participation.deleteMany({ where: { workshopId } });
   await prisma.stepProgress.deleteMany({ where: { step: { workshopId } } });
   await prisma.step.deleteMany({ where: { workshopId } });
   await prisma.workshop.delete({ where: { id: workshopId } });
