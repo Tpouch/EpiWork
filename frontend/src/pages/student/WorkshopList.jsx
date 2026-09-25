@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Card, Stack, Text, Title } from '@mantine/core';
+import { Card, CardContent } from '../../components/ui/card';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../api';
 
@@ -12,14 +12,20 @@ export default function WorkshopList() {
   }, []);
 
   return (
-    <Stack>
-      <Title order={2}>Workshops</Title>
+    <div className="flex flex-col gap-4">
+      <h2 className="text-2xl font-heading">Workshops</h2>
       {workshops.map((w) => (
-        <Card key={w.id} withBorder onClick={() => navigate(`/workshops/${w.id}`)} style={{ cursor: 'pointer' }}>
-          <Text fw={600}>{w.title}</Text>
-          <Text size="sm" c="dimmed">{w.description}</Text>
+        <Card
+          key={w.id}
+          onClick={() => navigate(`/workshops/${w.id}`)}
+          className="cursor-pointer"
+        >
+          <CardContent>
+            <p className="font-semibold">{w.title}</p>
+            <p className="text-sm opacity-70">{w.description}</p>
+          </CardContent>
         </Card>
       ))}
-    </Stack>
+    </div>
   );
 }
