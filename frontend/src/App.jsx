@@ -8,6 +8,7 @@ import AdminHome from './pages/admin/AdminHome';
 import WorkshopEditor from './pages/admin/WorkshopEditor';
 import WorkshopReview from './pages/admin/WorkshopReview';
 import Workshops from './pages/admin/Workshops';
+import WorkshopDetail from './pages/admin/WorkshopDetail';
 
 function RequireUser({ children }) {
   const user = currentUser();
@@ -30,6 +31,7 @@ export default function App() {
                   <>
                     <Route path="/" element={<AdminHome />} />
                     <Route path="/workshops" element={<Workshops />} />
+                    <Route path="/workshops/:id" element={<WorkshopDetail />} />
                     <Route path="/workshops/:id/edit" element={<WorkshopEditor />} />
                     <Route path="/workshops/:id/review" element={<WorkshopReview />} />
                   </>
