@@ -13,6 +13,15 @@ export function setCurrentUser(user) {
   }
 }
 
+function errorMessage(text) {
+  try {
+    const body = JSON.parse(text);
+    return typeof body.error === 'string' ? body.error : body.error?.message;
+  } catch {
+    return text;
+  }
+}
+
 async function request(path, options = {}) {
   const user = currentUser();
   const res = await fetch(BASE + path, {
@@ -25,7 +34,7 @@ async function request(path, options = {}) {
   });
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(text || `Request failed: ${res.status}`);
+    throw new Error(errorMessage(text) || `Request failed: ${res.status}`);
   }
   if (res.status === 204) return null;
   return res.json();
@@ -48,4 +57,10 @@ export const api = {
   unlockStep: (stepId, studentId) => request(`/steps/${stepId}/unlock`, { method: 'POST', body: { studentId } }),
   workshopProgress: (workshopId) => request(`/workshops/${workshopId}/progress`),
   adminFeed: () => request('/admin/feed'),
+  session: () => request('/session'),
+  sessionProgress: () => request('/session/progress'),
+  launchWorkshop: (id) => request(`/workshops/${id}/launch`, { method: 'POST', body: {} }),
+  endWorkshop: (id) => request(`/workshops/${id}/end`, { method: 'POST', body: {} }),
+  checkJoinCode: (code) => request(`/join/${encodeURIComponent(code)}`),
+  join: (code, email) => request('/join', { method: 'POST', body: { code, email } }),
 };
