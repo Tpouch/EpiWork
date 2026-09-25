@@ -11,8 +11,6 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
-    "@mantine/core": "^9.6.2",
-    "@mantine/hooks": "^9.6.2",
     "class-variance-authority": "^0.7.1",
     "cn": "^0.4.0",
     "lucide-react": "^1.48.0",
