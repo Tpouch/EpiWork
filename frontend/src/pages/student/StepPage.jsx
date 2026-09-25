@@ -1,56 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Button, Grid, Group, Radio, Stack, Text, Textarea, Title } from '@mantine/core';
+import { Button } from '../../components/ui/button';
+import { Textarea } from '../../components/ui/textarea';
+import { RadioGroup, RadioGroupItem } from '../../components/ui/radio-group';
 import { api } from '../../api';
-import { signalColors } from '../../theme';
-
-function canSubmitAnswer(questionType, answer) {
-  if (questionType === 'text') return answer.trim().length > 0;
-  if (questionType === 'multiple_choice') return !!answer;
-  return true;
-}
-
-function CheckpointQuestion({ step, answer, setAnswer }) {
-  if (step.questionType === 'multiple_choice') {
-    const options = step.questionOptions ? JSON.parse(step.questionOptions) : [];
-    return (
-      <Radio.Group label={step.questionPrompt} value={answer} onChange={setAnswer}>
-        <Stack gap="xs" mt="xs">
-          {options.map((opt) => (
-            <Radio key={opt} value={opt} label={opt} />
-          ))}
-        </Stack>
-      </Radio.Group>
-    );
-  }
-  if (step.questionType === 'confirm') {
-    return <Text c="dimmed">{step.questionPrompt || 'Confirm you completed this step.'}</Text>;
-  }
-  return (
-    <Textarea
-      label={step.questionPrompt}
-      value={answer}
-      onChange={(e) => setAnswer(e.currentTarget.value)}
-      autosize
-      minRows={4}
-    />
-  );
-}
-
-function StepAnswer({ active, answer, setAnswer, submit }) {
-  if (active.status === 'pending_review') {
-    return <Text c="dimmed">Waiting for the admin to review your answer.</Text>;
-  }
-  if (!active.step.isCheckpoint) {
-    return <Button onClick={submit}>Mark done, next step</Button>;
-  }
-  return (
-    <>
-      <CheckpointQuestion step={active.step} answer={answer} setAnswer={setAnswer} />
-      <Button onClick={submit} disabled={!canSubmitAnswer(active.step.questionType, answer)}>Submit answer</Button>
-    </>
-  );
-}
 
 export default function StepPage() {
   const { id } = useParams();
@@ -71,7 +24,7 @@ export default function StepPage() {
   }, [id]);
 
   const active = rows.find((r) => r.stepId === activeStepId);
-  if (!active) return <Text>Loading...</Text>;
+  if (!active) return <p>Loading...</p>;
 
   async function submit() {
     await api.submitStep(active.stepId, answer);
@@ -84,27 +37,61 @@ export default function StepPage() {
     load();
   }
 
+  const options = active.step.questionOptions ? JSON.parse(active.step.questionOptions) : [];
+  const canSubmit =
+    active.step.questionType === 'text' ? answer.trim().length > 0 :
+    active.step.questionType === 'multiple_choice' ? !!answer :
+    true;
+
   return (
-    <Grid>
-      <Grid.Col span={{ base: 12, md: 7 }}>
-        <Title order={3}>{active.step.title}</Title>
-        <Text mt="sm">{active.step.content}</Text>
-      </Grid.Col>
-      <Grid.Col span={{ base: 12, md: 5 }}>
-        <Stack>
-          <StepAnswer active={active} answer={answer} setAnswer={setAnswer} submit={submit} />
-          <Group>
-            <Button
-              variant="outline"
-              styles={{ root: { borderColor: signalColors.needsHelp, color: signalColors.needsHelpText } }}
-              onClick={requestHelp}
-              disabled={active.helpRequested}
-            >
-              {active.helpRequested ? 'Help requested' : 'I need help'}
-            </Button>
-          </Group>
-        </Stack>
-      </Grid.Col>
-    </Grid>
+    <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+      <div className="md:col-span-7">
+        <h3 className="text-xl font-heading">{active.step.title}</h3>
+        <p className="mt-2">{active.step.content}</p>
+      </div>
+      <div className="md:col-span-5 flex flex-col gap-4">
+        {active.status === 'pending_review' ? (
+          <p className="opacity-70">Waiting for the admin to review your answer.</p>
+        ) : active.step.isCheckpoint ? (
+          <>
+            {active.step.questionType === 'multiple_choice' ? (
+              <div>
+                <p className="mb-2">{active.step.questionPrompt}</p>
+                <RadioGroup value={answer} onValueChange={setAnswer} className="flex flex-col gap-2">
+                  {options.map((opt) => (
+                    <label key={opt} className="flex items-center gap-2">
+                      <RadioGroupItem value={opt} />
+                      {opt}
+                    </label>
+                  ))}
+                </RadioGroup>
+              </div>
+            ) : active.step.questionType === 'confirm' ? (
+              <p className="opacity-70">{active.step.questionPrompt || 'Confirm you completed this step.'}</p>
+            ) : (
+              <Textarea
+                value={answer}
+                onChange={(e) => setAnswer(e.target.value)}
+                placeholder={active.step.questionPrompt}
+                rows={4}
+              />
+            )}
+            <Button onClick={submit} disabled={!canSubmit}>Submit answer</Button>
+          </>
+        ) : (
+          <Button onClick={submit}>Mark done, next step</Button>
+        )}
+        <div>
+          <Button
+            variant="neutral"
+            onClick={requestHelp}
+            disabled={active.helpRequested}
+            className="border-brutal-orange text-brutal-orange-text"
+          >
+            {active.helpRequested ? 'Help requested' : 'I need help'}
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 }
