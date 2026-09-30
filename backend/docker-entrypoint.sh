@@ -3,9 +3,9 @@ set -e
 
 pnpm exec prisma migrate deploy
 
-if [ ! -f prisma/.seeded ]; then
+if [ ! -f /data/.seeded ]; then
   pnpm run seed
-  touch prisma/.seeded
+  touch /data/.seeded
 fi
 
 exec node src/index.js
