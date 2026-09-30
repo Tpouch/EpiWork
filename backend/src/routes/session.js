@@ -9,6 +9,7 @@ const {
   checkJoinCode,
   joinActiveWorkshop,
   activeSessionProgress,
+  activeSessionEvents,
 } = require('../sessions/session');
 
 const router = express.Router();
@@ -29,6 +30,10 @@ router.get('/session', requireAdmin, async (req, res) => {
 
 router.get('/session/progress', requireAdmin, async (req, res) => {
   res.json(await activeSessionProgress(prisma));
+});
+
+router.get('/session/events', requireAdmin, async (req, res) => {
+  res.json(await activeSessionEvents(prisma));
 });
 
 router.post('/workshops/:id/launch', requireAdmin, async (req, res) => {
