@@ -218,6 +218,51 @@ describe('workshop sessions', () => {
     ]);
   });
 
+  test('launching creates a run with the same launchedAt', async () => {
+    await launchWorkshop(prisma, git.id, () => 'GIT234');
+    const stored = await prisma.workshop.findUnique({ where: { id: git.id } });
+    const runs = await prisma.workshopRun.findMany({ where: { workshopId: git.id } });
+    expect(runs).toHaveLength(1);
+    expect(runs[0].launchedAt).toEqual(stored.launchedAt);
+    expect(runs[0].endedAt).toBeNull();
+  });
+
+  test('relaunching the active workshop creates no second run and keeps it open', async () => {
+    await launchWorkshop(prisma, git.id, () => 'GIT234');
+    await launchWorkshop(prisma, git.id, () => 'NEW234');
+    const runs = await prisma.workshopRun.findMany({ where: { workshopId: git.id } });
+    expect(runs).toHaveLength(1);
+    expect(runs[0].endedAt).toBeNull();
+  });
+
+  test('ending a workshop closes its run', async () => {
+    await launchWorkshop(prisma, git.id, () => 'GIT234');
+    await endWorkshop(prisma, git.id);
+    const [run] = await prisma.workshopRun.findMany({ where: { workshopId: git.id } });
+    expect(run.endedAt).toBeInstanceOf(Date);
+  });
+
+  test('launching another workshop closes the previous run', async () => {
+    await launchWorkshop(prisma, git.id, () => 'GIT234');
+    await launchWorkshop(prisma, css.id, () => 'CSS234');
+    const [gitRun] = await prisma.workshopRun.findMany({ where: { workshopId: git.id } });
+    const [cssRun] = await prisma.workshopRun.findMany({ where: { workshopId: css.id } });
+    expect(gitRun.endedAt).toEqual(cssRun.launchedAt);
+    expect(cssRun.endedAt).toBeNull();
+  });
+
+  test('deleting a workshop deletes its runs and their feedback', async () => {
+    await launchWorkshop(prisma, git.id, () => 'GIT234');
+    const [run] = await prisma.workshopRun.findMany({ where: { workshopId: git.id } });
+    await prisma.feedback.create({ data: { runId: run.id, studentId: maya.id, rating: 5, createdAt: new Date() } });
+    await prisma.participation.deleteMany({ where: { workshopId: git.id } });
+    await prisma.stepProgress.deleteMany({ where: { step: { workshopId: git.id } } });
+    await prisma.step.deleteMany({ where: { workshopId: git.id } });
+    await prisma.workshop.delete({ where: { id: git.id } });
+    expect(await prisma.workshopRun.count()).toBe(0);
+    expect(await prisma.feedback.count()).toBe(0);
+  });
+
   test('deleting a student also deletes their events', async () => {
     await launchWorkshop(prisma, git.id, () => 'GIT234');
     await joinActiveWorkshop(prisma, { code: 'GIT234', student: maya });
