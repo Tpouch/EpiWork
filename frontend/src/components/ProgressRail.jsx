@@ -2,12 +2,12 @@ import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from './ui/t
 import { cn } from '@/lib/utils';
 
 const STATUS_STYLES = {
-  done: { className: 'bg-brutal-green text-brutal-ink', label: 'done with step' },
-  pending_review: { className: 'bg-brutal-cyan text-brutal-ink', label: 'awaiting review' },
+  done: { className: 'bg-brutal-green text-brutal-dark', label: 'done with step' },
+  pending_review: { className: 'bg-brutal-cyan text-brutal-dark', label: 'awaiting review' },
   available: { className: 'bg-brutal-ink text-brutal-bg', label: 'in progress' },
   locked: { className: 'bg-neutral-300 text-brutal-ink', label: 'not started' },
 };
-const HELP_STYLE = { className: 'bg-brutal-orange text-brutal-ink', label: 'needs help' };
+const HELP_STYLE = { className: 'bg-brutal-orange text-brutal-dark', label: 'needs help' };
 const LEGEND = [STATUS_STYLES.available, STATUS_STYLES.pending_review, HELP_STYLE, STATUS_STYLES.done];
 
 function initials(name) {
@@ -37,7 +37,7 @@ function StudentDot({ student, stepIndex, row }) {
           <button
             type="button"
             aria-label={description}
-            className={cn('size-10 shrink-0 rounded-full border-3 border-brutal-ink text-xs font-bold', style.className)}
+            className={cn('size-10 shrink-0 rounded-full border-3 border-brutal-line text-xs font-bold', style.className)}
           >
             {initials(student.name)}
           </button>
@@ -58,19 +58,19 @@ export default function ProgressRail({ workshop, studentsProgress }) {
   return (
     <TooltipProvider>
       <div className="flex flex-col gap-3">
-        <div className="overflow-x-auto border-3 border-brutal-ink bg-white">
+        <div className="overflow-x-auto border-3 border-brutal-line bg-brutal-surface">
           <div className="flex min-w-full">
             {workshop.steps.map((step, index) => (
               <div
                 key={step.id}
-                className="flex min-w-14 flex-1 flex-col border-r-2 border-dashed border-brutal-ink/20 last:border-r-0"
+                className="flex min-w-14 flex-1 flex-col border-r-2 border-dashed border-brutal-line/20 last:border-r-0"
               >
                 <div className="flex min-h-20 flex-1 flex-wrap content-center items-center justify-center gap-1.5 p-2">
                   {columns[index].map((dot) => (
                     <StudentDot key={dot.student.id} {...dot} />
                   ))}
                 </div>
-                <span className="border-t-2 border-brutal-ink py-1 text-center text-xs opacity-70" title={step.title}>
+                <span className="border-t-2 border-brutal-line py-1 text-center text-xs opacity-70" title={step.title}>
                   {index + 1}
                 </span>
               </div>
@@ -80,7 +80,7 @@ export default function ProgressRail({ workshop, studentsProgress }) {
         <ul aria-label="Legend" className="flex flex-wrap gap-4 text-xs">
           {LEGEND.map((item) => (
             <li key={item.label} className="flex items-center gap-1.5">
-              <span className={cn('size-3 rounded-full border-2 border-brutal-ink', item.className)} aria-hidden="true" />
+              <span className={cn('size-3 rounded-full border-2 border-brutal-line', item.className)} aria-hidden="true" />
               {item.label}
             </li>
           ))}

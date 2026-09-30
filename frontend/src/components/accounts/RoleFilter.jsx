@@ -16,7 +16,7 @@ export default function RoleFilter({ value, onChange }) {
           aria-pressed={value === option.value}
           onClick={() => onChange(option.value)}
           className={cn(
-            '-ml-0.5 h-10 cursor-pointer border-2 border-brutal-ink px-3 text-xs font-semibold uppercase first:ml-0',
+            '-ml-0.5 h-10 cursor-pointer border-2 border-brutal-line px-3 text-xs font-semibold uppercase first:ml-0',
             value === option.value ? 'bg-brutal-ink text-brutal-bg' : 'bg-brutal-bg',
           )}
         >
