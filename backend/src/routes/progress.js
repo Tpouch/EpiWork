@@ -3,12 +3,43 @@ const prisma = require('../db');
 const { requireAdmin, requireUser } = require('../middleware/auth');
 const { ensureProgress, submitAnswer, unlockStep, toggleHelp } = require('../progress/stateMachine');
 const { PUBLIC_FIELDS } = require('../accounts/accounts');
+const { FeedbackError, getMyFeedback, submitFeedback } = require('../feedback/feedback');
 const router = express.Router();
+
+function parseWorkshopId(value) {
+  const id = Number(value);
+  return Number.isInteger(id) && id > 0 ? id : null;
+}
+
+function sendFeedbackError(res, err) {
+  if (!(err instanceof FeedbackError)) throw err;
+  res.status(err.status).json({ error: err.message });
+}
 
 router.get('/me/workshops/:id', requireUser, async (req, res) => {
   const workshopId = Number(req.params.id);
   const rows = await ensureProgress(prisma, workshopId, req.user.id);
   res.json(rows);
+});
+
+router.get('/me/workshops/:id/feedback', requireUser, async (req, res) => {
+  const workshopId = parseWorkshopId(req.params.id);
+  if (!workshopId) return res.status(400).json({ error: 'Invalid workshop id.' });
+  try {
+    res.json(await getMyFeedback(prisma, workshopId, req.user.id));
+  } catch (err) {
+    sendFeedbackError(res, err);
+  }
+});
+
+router.post('/me/workshops/:id/feedback', requireUser, async (req, res) => {
+  const workshopId = parseWorkshopId(req.params.id);
+  if (!workshopId) return res.status(400).json({ error: 'Invalid workshop id.' });
+  try {
+    res.status(201).json(await submitFeedback(prisma, workshopId, req.user.id, req.body ?? {}));
+  } catch (err) {
+    sendFeedbackError(res, err);
+  }
 });
 
 router.post('/steps/:id/submit', requireUser, async (req, res) => {
