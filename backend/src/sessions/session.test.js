@@ -6,7 +6,9 @@ const {
   checkJoinCode,
   joinActiveWorkshop,
   activeSessionProgress,
+  activeSessionEvents,
 } = require('./session');
+const { ensureProgress, toggleHelp } = require('../progress/stateMachine');
 
 async function resetDb() {
   await prisma.session.deleteMany();
@@ -143,5 +145,84 @@ describe('workshop sessions', () => {
 
   test('activeSessionProgress returns null when nothing is live', async () => {
     expect(await activeSessionProgress(prisma)).toBeNull();
+  });
+
+  test('activeSessionEvents returns null when nothing is live', async () => {
+    expect(await activeSessionEvents(prisma)).toBeNull();
+  });
+
+  test('joining logs one joined event, even when the student re-enters the code', async () => {
+    await launchWorkshop(prisma, git.id, () => 'GIT234');
+    await joinActiveWorkshop(prisma, { code: 'GIT234', student: maya });
+    await joinActiveWorkshop(prisma, { code: 'GIT234', student: maya });
+    const { events } = await activeSessionEvents(prisma);
+    expect(events).toHaveLength(1);
+    expect(events[0]).toMatchObject({
+      type: 'joined',
+      student: { id: maya.id, name: 'Maya Lopez' },
+      step: null,
+      open: false,
+      closedAt: null,
+    });
+  });
+
+  test('activeSessionEvents gives launchedAt, the last step and newest events first', async () => {
+    const session = await launchWorkshop(prisma, git.id, () => 'GIT234');
+    await joinActiveWorkshop(prisma, { code: 'GIT234', student: maya });
+    const steps = await prisma.step.findMany({ where: { workshopId: git.id }, orderBy: { order: 'asc' } });
+    await ensureProgress(prisma, git.id, maya.id);
+    await toggleHelp(prisma, steps[0].id, maya.id, true);
+    const result = await activeSessionEvents(prisma);
+    expect(result.launchedAt).toEqual(session.launchedAt);
+    expect(result.lastStepId).toBe(steps[1].id);
+    expect(result.events.map((e) => e.type)).toEqual(['help_requested', 'joined']);
+    expect(result.events[0]).toMatchObject({ open: true, step: { id: steps[0].id, number: 1, title: 'Step 1' } });
+    expect(JSON.stringify(result)).not.toContain('passwordHash');
+  });
+
+  test('events from an earlier run of the workshop are left out', async () => {
+    await launchWorkshop(prisma, git.id, () => 'GIT234');
+    await prisma.sessionEvent.create({
+      data: { workshopId: git.id, studentId: maya.id, type: 'joined', createdAt: new Date(Date.now() - 60_000) },
+    });
+    const { events } = await activeSessionEvents(prisma);
+    expect(events).toEqual([]);
+  });
+
+  test('step numbers follow step position even when orders have gaps', async () => {
+    const gappy = await prisma.workshop.create({ data: { title: 'Gappy', description: 'd' } });
+    await prisma.step.create({ data: { workshopId: gappy.id, order: 1, title: 'First', content: 'c' } });
+    const second = await prisma.step.create({ data: { workshopId: gappy.id, order: 3, title: 'Was third', content: 'c' } });
+    await launchWorkshop(prisma, gappy.id, () => 'ABC234');
+    await joinActiveWorkshop(prisma, { code: 'ABC234', student: maya });
+    await ensureProgress(prisma, gappy.id, maya.id);
+    await toggleHelp(prisma, second.id, maya.id, true);
+    const result = await activeSessionEvents(prisma);
+    expect(result.events[0].step).toMatchObject({ id: second.id, number: 2 });
+    expect(result.lastStepId).toBe(second.id);
+  });
+
+  test('help and checkpoints left from an earlier run show up again when the student joins', async () => {
+    const [first] = await ensureProgress(prisma, git.id, maya.id);
+    await prisma.stepProgress.update({
+      where: { id: first.id },
+      data: { status: 'pending_review', submittedAnswer: 'old answer', helpRequested: true },
+    });
+    await launchWorkshop(prisma, git.id, () => 'GIT234');
+    await joinActiveWorkshop(prisma, { code: 'GIT234', student: maya });
+    const { events } = await activeSessionEvents(prisma);
+    expect(events.map((e) => [e.type, e.stepId, e.answer, e.open])).toEqual([
+      ['help_requested', first.stepId, null, true],
+      ['checkpoint_submitted', first.stepId, 'old answer', true],
+      ['joined', null, null, false],
+    ]);
+  });
+
+  test('deleting a student also deletes their events', async () => {
+    await launchWorkshop(prisma, git.id, () => 'GIT234');
+    await joinActiveWorkshop(prisma, { code: 'GIT234', student: maya });
+    await prisma.participation.deleteMany({ where: { studentId: maya.id } });
+    await prisma.user.delete({ where: { id: maya.id } });
+    expect(await prisma.sessionEvent.count()).toBe(0);
   });
 });
