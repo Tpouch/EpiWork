@@ -9,6 +9,7 @@ const {
 } = require('./session');
 
 async function resetDb() {
+  await prisma.session.deleteMany();
   await prisma.participation.deleteMany();
   await prisma.stepProgress.deleteMany();
   await prisma.step.deleteMany();
