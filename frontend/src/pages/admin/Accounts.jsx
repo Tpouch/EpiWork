@@ -15,9 +15,13 @@ function matches(account, query, role) {
   return !needle || `${account.name} ${account.email ?? ''}`.toLowerCase().includes(needle);
 }
 
+function plural(count, word) {
+  return `${count} ${word}${count === 1 ? '' : 's'}`;
+}
+
 function countLabel(accounts) {
   const admins = accounts.filter((a) => a.role === 'admin').length;
-  return `${accounts.length} accounts · ${admins} admins · ${accounts.length - admins} students`;
+  return [plural(accounts.length, 'account'), plural(admins, 'admin'), plural(accounts.length - admins, 'student')].join(' · ');
 }
 
 export default function Accounts() {
@@ -29,7 +33,13 @@ export default function Accounts() {
   const meId = currentUser()?.id;
 
   function reload() {
-    api.listAccounts().then(setAccounts).catch((err) => setError(err.message));
+    api
+      .listAccounts()
+      .then((list) => {
+        setAccounts(list);
+        setError('');
+      })
+      .catch((err) => setError(err.message));
   }
 
   useEffect(() => {

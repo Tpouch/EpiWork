@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { Lock } from 'lucide-react';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import RoleBadge from './RoleBadge';
@@ -21,6 +22,12 @@ export default function AccountsTable({ accounts, meId, onReset, onDelete }) {
               <td className="p-3 font-semibold">
                 {account.name}
                 {account.id === meId && <Badge className="ml-2 bg-brutal-lime font-semibold uppercase">You</Badge>}
+                {account.isProtected && (
+                  <Badge className="ml-2 bg-brutal-bg font-semibold uppercase">
+                    <Lock aria-hidden="true" />
+                    Base admin
+                  </Badge>
+                )}
               </td>
               <td className="p-3">{account.email ?? '—'}</td>
               <td className="p-3"><RoleBadge role={account.role} /></td>
@@ -32,9 +39,11 @@ export default function AccountsTable({ accounts, meId, onReset, onDelete }) {
                 ) : (
                   <div className="flex justify-end gap-2">
                     <Button size="sm" variant="neutral" onClick={() => onReset(account)}>Reset password</Button>
-                    <Button size="sm" variant="danger" onClick={() => onDelete(account)} aria-label={`Delete ${account.name}`}>
-                      Delete
-                    </Button>
+                    {!account.isProtected && (
+                      <Button size="sm" variant="danger" onClick={() => onDelete(account)} aria-label={`Delete ${account.name}`}>
+                        Delete
+                      </Button>
+                    )}
                   </div>
                 )}
               </td>
