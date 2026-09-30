@@ -4,7 +4,7 @@ services:
     ports:
       - "4000:4000"
     env_file:
-      - path: ./backend/.env
+      - path: ./.env
         required: false
     environment:
       - DATABASE_URL=file:/data/dev.db
