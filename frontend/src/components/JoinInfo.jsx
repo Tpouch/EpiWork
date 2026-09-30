@@ -10,7 +10,7 @@ export default function JoinInfo({ session, onOpenLive, onEnd }) {
   return (
     <div className="flex flex-col items-center gap-5 py-10 text-center">
       <h2 className="text-2xl font-heading">{session.icon} {session.title} is live</h2>
-      <div className="flex flex-col gap-4 border-3 border-brutal-ink bg-white px-10 py-6 shadow-brutal-lg">
+      <div className="flex flex-col gap-4 border-3 border-brutal-line bg-brutal-surface px-10 py-6 shadow-brutal-lg">
         <div>
           <p className="text-xs uppercase tracking-widest opacity-60">Students join at</p>
           <p className="font-heading text-2xl break-all">{joinUrl}</p>

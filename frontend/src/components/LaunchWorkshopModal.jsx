@@ -43,7 +43,7 @@ function WorkshopPicker({ onLaunched }) {
             onClick={() => setSelectedId(workshop.id)}
             aria-pressed={selectedId === workshop.id}
             className={cn(
-              'flex items-center gap-3 border-2 border-brutal-ink bg-white p-3 text-left cursor-pointer disabled:cursor-not-allowed disabled:opacity-50',
+              'flex items-center gap-3 border-2 border-brutal-line bg-brutal-surface p-3 text-left cursor-pointer disabled:cursor-not-allowed disabled:opacity-50',
               selectedId === workshop.id && 'outline-3 outline-offset-1 outline-brutal-blue',
             )}
           >

@@ -3,11 +3,11 @@ export default function WorkshopCard({ workshop, meta, onOpen }) {
     <button
       type="button"
       onClick={onOpen}
-      className="relative flex flex-col gap-1.5 border-2 border-brutal-ink bg-white p-4 text-left shadow-brutal transition-all cursor-pointer hover:translate-x-1 hover:translate-y-1 hover:shadow-none"
+      className="relative flex flex-col gap-1.5 border-2 border-brutal-line bg-brutal-surface p-4 text-left shadow-brutal transition-all cursor-pointer hover:translate-x-1 hover:translate-y-1 hover:shadow-none"
     >
       {workshop.isActive && (
-        <span className="absolute right-3 top-3 flex items-center gap-1 border-2 border-brutal-ink bg-brutal-green px-1.5 text-[10px] font-bold uppercase">
-          <span className="size-1.5 rounded-full bg-brutal-ink" aria-hidden="true" />
+        <span className="absolute right-3 top-3 flex items-center gap-1 border-2 border-brutal-line bg-brutal-green px-1.5 text-[10px] text-brutal-dark font-bold uppercase">
+          <span className="size-1.5 rounded-full bg-brutal-dark" aria-hidden="true" />
           Live
         </span>
       )}

@@ -9,7 +9,7 @@ export default function StudentPreview({ steps, onExit }) {
   const step = steps[index];
 
   return (
-    <section aria-label="Student preview" className="border-3 border-dashed border-brutal-blue bg-white">
+    <section aria-label="Student preview" className="border-3 border-dashed border-brutal-blue bg-brutal-surface">
       <div className="flex flex-wrap items-center justify-between gap-2 bg-brutal-blue px-4 py-2 text-xs font-bold uppercase tracking-wide text-white">
         <span className="flex items-center gap-2">
           <Eye className="size-4" aria-hidden="true" />

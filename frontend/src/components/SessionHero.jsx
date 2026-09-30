@@ -14,10 +14,10 @@ export default function SessionHero({ session, onLaunch, onJump }) {
 
   if (active) {
     return (
-      <div className="flex flex-wrap items-center justify-between gap-4 border-2 border-brutal-ink bg-brutal-accent p-5 shadow-brutal">
+      <div className="flex flex-wrap items-center justify-between gap-4 border-2 border-brutal-line bg-brutal-accent p-5 text-brutal-dark shadow-brutal">
         <div>
           <p className="flex items-center gap-2 font-heading text-xl uppercase">
-            <span className="size-2.5 rounded-full bg-brutal-ink" aria-hidden="true" />
+            <span className="size-2.5 rounded-full bg-brutal-dark" aria-hidden="true" />
             {active.icon} {active.title} is live
           </p>
           <p className="text-sm opacity-80">{studentsLabel(active.participantCount)} · code {active.joinCode}</p>
@@ -28,7 +28,7 @@ export default function SessionHero({ session, onLaunch, onJump }) {
   }
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-4 border-2 border-brutal-ink bg-white p-5 shadow-brutal">
+    <div className="flex flex-wrap items-center justify-between gap-4 border-2 border-brutal-line bg-brutal-surface p-5 shadow-brutal">
       <div>
         <p className="font-heading text-xl uppercase">No session running</p>
         <p className="text-sm opacity-70">

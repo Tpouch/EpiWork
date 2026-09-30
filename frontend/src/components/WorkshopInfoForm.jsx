@@ -30,7 +30,7 @@ export default function WorkshopInfoForm({ workshop, onSave }) {
   }
 
   return (
-    <form onSubmit={save} className="flex flex-col gap-4 border-2 border-brutal-ink bg-white p-4 shadow-brutal">
+    <form onSubmit={save} className="flex flex-col gap-4 border-2 border-brutal-line bg-brutal-surface p-4 shadow-brutal">
       <fieldset>
         <legend className="mb-2 text-sm font-semibold">Icon</legend>
         <div className="flex flex-wrap gap-2">
@@ -43,7 +43,7 @@ export default function WorkshopInfoForm({ workshop, onSave }) {
               aria-pressed={icon === option}
               className={cn(
                 'size-11 border-2 text-2xl cursor-pointer',
-                icon === option ? 'border-brutal-ink bg-brutal-accent shadow-brutal-sm' : 'border-transparent hover:border-brutal-ink',
+                icon === option ? 'border-brutal-line bg-brutal-accent text-brutal-dark shadow-brutal-sm' : 'border-transparent hover:border-brutal-line',
               )}
             >
               {option}

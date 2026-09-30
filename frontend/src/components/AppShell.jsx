@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import { House, LayoutGrid, LogOut, Play, Users } from 'lucide-react';
 import { api } from '../api';
+import ThemeToggle from './ThemeToggle';
 import { cn } from '@/lib/utils';
 
 const ADMIN_NAV = [
@@ -15,7 +16,7 @@ const STUDENT_NAV = [{ to: '/', label: 'Workshops', icon: LayoutGrid, end: true 
 function navItemClass({ isActive }) {
   return cn(
     'flex items-center gap-2 border-2 px-3 py-2 text-sm font-semibold uppercase tracking-wide',
-    isActive ? 'border-brutal-ink bg-brutal-accent shadow-brutal-sm' : 'border-transparent hover:border-brutal-ink',
+    isActive ? 'border-brutal-line bg-brutal-accent text-brutal-dark shadow-brutal-sm' : 'border-transparent hover:border-brutal-line',
   );
 }
 
@@ -29,12 +30,13 @@ export default function AppShell({ user, children }) {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="h-14 flex items-center justify-between px-4 border-b-2 border-brutal-ink bg-brutal-bg">
+      <header className="h-14 flex items-center justify-between px-4 border-b-2 border-brutal-line bg-brutal-bg">
         <h1 className="text-lg font-heading">{'{ EPIWORK }'}</h1>
         <div className="flex items-center gap-4">
+          <ThemeToggle />
           <NavLink
             to="/account"
-            className="border-2 border-brutal-ink bg-brutal-accent px-2 py-1 text-sm font-semibold uppercase tracking-wide shadow-brutal-sm"
+            className="border-2 border-brutal-line bg-brutal-accent px-2 py-1 text-brutal-dark text-sm font-semibold uppercase tracking-wide shadow-brutal-sm"
           >
             {user?.name}
           </NavLink>
@@ -51,7 +53,7 @@ export default function AppShell({ user, children }) {
       <div className="flex flex-1 flex-col sm:flex-row">
         <nav
           aria-label="Main"
-          className="flex gap-2 border-b-2 border-brutal-ink p-3 sm:w-[200px] sm:shrink-0 sm:flex-col sm:border-b-0 sm:border-r-2 sm:p-4"
+          className="flex gap-2 border-b-2 border-brutal-line p-3 sm:w-[200px] sm:shrink-0 sm:flex-col sm:border-b-0 sm:border-r-2 sm:p-4"
         >
           {items.map(({ to, label, icon: Icon, end }) => (
             <NavLink key={to} to={to} end={end} className={navItemClass}>

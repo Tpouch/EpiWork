@@ -36,7 +36,7 @@ export default function AppearanceCard({ user, onSaved }) {
                   disabled={busy}
                   onClick={() => run(accent.name)}
                   style={{ backgroundColor: accent.hex }}
-                  className={`flex size-11 cursor-pointer items-center justify-center border-2 border-brutal-ink disabled:cursor-wait ${
+                  className={`flex size-11 cursor-pointer items-center justify-center border-2 border-brutal-line text-brutal-dark disabled:cursor-wait ${
                     selected ? 'ring-2 ring-brutal-ink ring-offset-2' : ''
                   }`}
                 >
@@ -49,7 +49,7 @@ export default function AppearanceCard({ user, onSaved }) {
         </div>
         {error && <p role="alert" className="text-sm text-brutal-red">{error}</p>}
         {saved && (
-          <span role="status" className="flex w-fit items-center gap-1 border-2 border-brutal-ink bg-brutal-green px-2 py-1 text-xs font-semibold">
+          <span role="status" className="flex w-fit items-center gap-1 border-2 border-brutal-line bg-brutal-green px-2 py-1 text-xs font-semibold text-brutal-dark">
             <Check className="size-3" aria-hidden="true" />
             Saved
           </span>
