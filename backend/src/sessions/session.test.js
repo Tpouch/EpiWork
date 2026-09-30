@@ -53,7 +53,7 @@ describe('workshop sessions', () => {
     await launchWorkshop(prisma, css.id, () => 'CSS234');
     const previous = await prisma.workshop.findUnique({ where: { id: git.id } });
     expect(previous).toMatchObject({ isActive: false, joinCode: null });
-    await expect(checkJoinCode(prisma, 'GIT234')).rejects.toMatchObject({ status: 404 });
+    await expect(checkJoinCode(prisma, { code: 'GIT234', student: maya })).rejects.toMatchObject({ status: 404 });
   });
 
   test('relaunching the active workshop keeps its code', async () => {
@@ -79,7 +79,7 @@ describe('workshop sessions', () => {
     const stored = await prisma.workshop.findUnique({ where: { id: git.id } });
     expect(stored).toMatchObject({ isActive: false, joinCode: null });
     expect(await prisma.stepProgress.count({ where: { studentId: maya.id } })).toBe(2);
-    await expect(checkJoinCode(prisma, 'GIT234')).rejects.toMatchObject({ status: 404 });
+    await expect(checkJoinCode(prisma, { code: 'GIT234', student: maya })).rejects.toMatchObject({ status: 404 });
   });
 
   test('getSessionOverview reports the active session, then the last one once ended', async () => {
@@ -95,7 +95,13 @@ describe('workshop sessions', () => {
 
   test('checkJoinCode accepts a lowercase code with spaces', async () => {
     await launchWorkshop(prisma, git.id, () => 'GIT234');
-    expect(await checkJoinCode(prisma, ' git234 ')).toEqual({ workshopId: git.id, title: 'Intro to Git', icon: '🐙' });
+    expect(await checkJoinCode(prisma, { code: ' git234 ', student: maya })).toEqual({ workshopId: git.id, title: 'Intro to Git', icon: '🐙' });
+  });
+
+  test('checkJoinCode refuses an admin', async () => {
+    await launchWorkshop(prisma, git.id, () => 'GIT234');
+    const admin = await prisma.user.create({ data: { name: 'Admin', email: 'admin@devgoblin.fr', role: 'admin' } });
+    await expect(checkJoinCode(prisma, { code: 'GIT234', student: admin })).rejects.toMatchObject({ status: 403 });
   });
 
   test('joinActiveWorkshop records the participation and returns the workshop', async () => {
