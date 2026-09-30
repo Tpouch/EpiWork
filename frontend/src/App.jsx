@@ -13,6 +13,8 @@ import WorkshopReview from './pages/admin/WorkshopReview';
 import Workshops from './pages/admin/Workshops';
 import WorkshopDetail from './pages/admin/WorkshopDetail';
 import Teach from './pages/admin/Teach';
+import History from './pages/admin/History';
+import RunDetail from './pages/admin/RunDetail';
 import Accounts from './pages/admin/Accounts';
 
 function RequireUser({ children }) {
@@ -44,6 +46,8 @@ export default function App() {
                     <Route path="/workshops" element={<Workshops />} />
                     <Route path="/workshops/:id" element={<WorkshopDetail />} />
                     <Route path="/teach" element={<Teach />} />
+                    <Route path="/history" element={<History />} />
+                    <Route path="/history/:runId" element={<RunDetail />} />
                     <Route path="/accounts" element={<Accounts />} />
                     <Route path="/workshops/:id/edit" element={<WorkshopEditor />} />
                     <Route path="/workshops/:id/review" element={<WorkshopReview />} />
