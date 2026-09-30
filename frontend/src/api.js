@@ -39,7 +39,8 @@ async function request(path, options = {}) {
   });
   // A 401 while holding a token means the session is gone (logout elsewhere,
   // password reset, account deleted, reseeded database): start over at login.
-  if (res.status === 401 && token) {
+  // /auth/* 401s are wrong credentials and must not wipe another tab's session.
+  if (res.status === 401 && token && !path.startsWith('/auth/')) {
     saveSession(null);
     window.location.assign('/login');
   }
