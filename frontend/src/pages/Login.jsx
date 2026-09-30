@@ -1,40 +1,43 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Button } from '../components/ui/button';
-import { api, setCurrentUser } from '../api';
+import { useState } from 'react';
+import { Navigate } from 'react-router-dom';
+import { currentUser } from '../api';
+import EmailStep from '../components/auth/EmailStep';
+import PasswordStep from '../components/auth/PasswordStep';
+import SignupStep from '../components/auth/SignupStep';
 
 export default function Login() {
-  const [users, setUsers] = useState([]);
-  const navigate = useNavigate();
+  const [email, setEmail] = useState('');
+  const [lookup, setLookup] = useState(null);
 
-  useEffect(() => {
-    api.listUsers().then(setUsers);
-  }, []);
+  if (currentUser()) return <Navigate to="/" replace />;
 
-  function pick(user) {
-    setCurrentUser(user);
-    navigate('/');
+  function changeEmail() {
+    setLookup(null);
   }
 
-  const admin = users.find((u) => u.role === 'admin');
-  const students = users.filter((u) => u.role === 'student');
-
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center gap-6 px-4">
-      <h1 className="text-4xl font-heading">{'{ EPIWORK }'}</h1>
-      <p className="opacity-70">Who&apos;s logging in?</p>
-      {admin && (
-        <Button size="lg" onClick={() => pick(admin)}>
-          I&apos;m the Admin
-        </Button>
-      )}
-      <div className="flex flex-col gap-2">
-        {students.map((s) => (
-          <Button key={s.id} variant="neutral" onClick={() => pick(s)}>
-            {s.name}
-          </Button>
-        ))}
-      </div>
+    <div className="flex min-h-dvh flex-col md:flex-row">
+      <aside className="flex flex-col justify-between gap-6 border-b-2 border-brutal-ink bg-brutal-lime p-6 md:w-1/2 md:border-b-0 md:border-r-2 md:p-12">
+        <h1 className="text-5xl leading-none md:text-7xl">
+          {'{ EPI'}
+          <br />
+          {'WORK }'}
+        </h1>
+        <p className="text-lg font-semibold">
+          Live workshops.
+          <br />
+          Step by step.
+          <br />
+          Nobody left behind.
+        </p>
+      </aside>
+      <main className="flex flex-1 items-center justify-center p-6">
+        <div className="w-full max-w-sm">
+          {!lookup && <EmailStep email={email} onEmailChange={setEmail} onResult={setLookup} />}
+          {lookup?.next === 'login' && <PasswordStep email={email} onChangeEmail={changeEmail} />}
+          {lookup?.next === 'signup' && <SignupStep email={email} name={lookup.name} onChangeEmail={changeEmail} />}
+        </div>
+      </main>
     </div>
   );
 }

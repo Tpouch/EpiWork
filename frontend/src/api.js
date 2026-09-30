@@ -1,16 +1,21 @@
 const BASE = '/api';
+const SESSION_KEY = 'epiwork_session';
 
-export function currentUser() {
-  const raw = localStorage.getItem('epiwork_user');
+function readSession() {
+  const raw = localStorage.getItem(SESSION_KEY);
   return raw ? JSON.parse(raw) : null;
 }
 
-export function setCurrentUser(user) {
-  if (user) {
-    localStorage.setItem('epiwork_user', JSON.stringify(user));
+function saveSession(session) {
+  if (session) {
+    localStorage.setItem(SESSION_KEY, JSON.stringify(session));
   } else {
-    localStorage.removeItem('epiwork_user');
+    localStorage.removeItem(SESSION_KEY);
   }
+}
+
+export function currentUser() {
+  return readSession()?.user ?? null;
 }
 
 function errorMessage(text) {
@@ -23,15 +28,21 @@ function errorMessage(text) {
 }
 
 async function request(path, options = {}) {
-  const user = currentUser();
+  const token = readSession()?.token;
   const res = await fetch(BASE + path, {
     method: options.method || 'GET',
     headers: {
       'Content-Type': 'application/json',
-      ...(user ? { 'x-user-id': String(user.id) } : {}),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
     body: options.body === undefined ? undefined : JSON.stringify(options.body),
   });
+  // A 401 while holding a token means the session is gone (logout elsewhere,
+  // password reset, account deleted, reseeded database): start over at login.
+  if (res.status === 401 && token) {
+    saveSession(null);
+    window.location.assign('/login');
+  }
   if (!res.ok) {
     const text = await res.text();
     throw new Error(errorMessage(text) || `Request failed: ${res.status}`);
@@ -40,9 +51,35 @@ async function request(path, options = {}) {
   return res.json();
 }
 
+async function startSession(path, body) {
+  const session = await request(path, { method: 'POST', body });
+  saveSession(session);
+  return session.user;
+}
+
 export const api = {
-  listUsers: () => request('/users'),
-  login: (userId) => request('/login', { method: 'POST', body: { userId } }),
+  lookupEmail: (email) => request('/auth/lookup', { method: 'POST', body: { email } }),
+  login: (email, password) => startSession('/auth/login', { email, password }),
+  signup: (email, password) => startSession('/auth/signup', { email, password }),
+  logout: async () => {
+    try {
+      await request('/auth/logout', { method: 'POST', body: {} });
+    } catch {
+      // The local session is cleared either way; a stale server session is harmless.
+    }
+    saveSession(null);
+  },
+  updateMe: async (data) => {
+    const user = await request('/me', { method: 'PATCH', body: data });
+    saveSession({ ...readSession(), user });
+    return user;
+  },
+  changePassword: (currentPassword, newPassword) =>
+    request('/me/password', { method: 'POST', body: { currentPassword, newPassword } }),
+  listAccounts: () => request('/accounts'),
+  createAdmin: (data) => request('/accounts', { method: 'POST', body: data }),
+  resetPassword: (id, password) => request(`/accounts/${id}/password`, { method: 'POST', body: { password } }),
+  deleteAccount: (id) => request(`/accounts/${id}`, { method: 'DELETE' }),
   listWorkshops: () => request('/workshops'),
   createWorkshop: (data) => request('/workshops', { method: 'POST', body: data }),
   updateWorkshop: (id, data) => request(`/workshops/${id}`, { method: 'PATCH', body: data }),
@@ -62,5 +99,5 @@ export const api = {
   launchWorkshop: (id) => request(`/workshops/${id}/launch`, { method: 'POST', body: {} }),
   endWorkshop: (id) => request(`/workshops/${id}/end`, { method: 'POST', body: {} }),
   checkJoinCode: (code) => request(`/join/${encodeURIComponent(code)}`),
-  join: (code, email) => request('/join', { method: 'POST', body: { code, email } }),
+  join: (code) => request('/join', { method: 'POST', body: { code } }),
 };

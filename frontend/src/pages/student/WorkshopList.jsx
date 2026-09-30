@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent } from '../../components/ui/card';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../api';
+import JoinCodeCard from '../../components/JoinCodeCard';
 
 export default function WorkshopList() {
   const [workshops, setWorkshops] = useState([]);
@@ -13,6 +14,7 @@ export default function WorkshopList() {
 
   return (
     <div className="flex flex-col gap-4">
+      <JoinCodeCard />
       <h2 className="text-2xl font-heading">Workshops</h2>
       {workshops.map((w) => (
         <Card

@@ -1,7 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { currentUser } from './api';
 import Login from './pages/Login';
-import Join from './pages/Join';
 import AppShell from './components/AppShell';
 import WorkshopList from './pages/student/WorkshopList';
 import StepPage from './pages/student/StepPage';
@@ -23,7 +22,7 @@ export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
-      <Route path="/join" element={<Join />} />
+      <Route path="/join" element={<Navigate to="/" replace />} />
       <Route
         path="/*"
         element={
