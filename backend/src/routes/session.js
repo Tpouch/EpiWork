@@ -1,6 +1,6 @@
 const express = require('express');
 const prisma = require('../db');
-const { requireAdmin } = require('../middleware/auth');
+const { requireAdmin, requireUser } = require('../middleware/auth');
 const {
   SessionError,
   getSessionOverview,
@@ -52,7 +52,7 @@ router.post('/workshops/:id/end', requireAdmin, async (req, res) => {
   }
 });
 
-router.get('/join/:code', async (req, res) => {
+router.get('/join/:code', requireUser, async (req, res) => {
   try {
     res.json(await checkJoinCode(prisma, req.params.code));
   } catch (err) {
@@ -60,10 +60,9 @@ router.get('/join/:code', async (req, res) => {
   }
 });
 
-router.post('/join', async (req, res) => {
-  const { code, email } = req.body ?? {};
+router.post('/join', requireUser, async (req, res) => {
   try {
-    res.json(await joinActiveWorkshop(prisma, { code, email }));
+    res.json(await joinActiveWorkshop(prisma, { code: req.body?.code, student: req.user }));
   } catch (err) {
     sendSessionError(res, err);
   }
