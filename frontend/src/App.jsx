@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { currentUser } from './api';
 import Login from './pages/Login';
@@ -20,7 +21,7 @@ function RequireUser({ children }) {
 }
 
 export default function App() {
-  const user = currentUser();
+  const [user, setUser] = useState(currentUser);
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
@@ -47,7 +48,7 @@ export default function App() {
                     <Route path="/workshops/:id" element={<StepPage />} />
                   </>
                 )}
-                <Route path="/account" element={<Account />} />
+                <Route path="/account" element={<Account user={user} onUserChange={setUser} />} />
               </Routes>
             </AppShell>
           </RequireUser>
