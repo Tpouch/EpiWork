@@ -192,10 +192,18 @@ async function activeSessionEvents(prisma) {
     ...row,
     step: row.step && { ...row.step, number: stepNumbers.get(row.step.id) },
   }));
+  const run = await prisma.workshopRun.findFirst({ where: { workshopId: workshop.id, endedAt: null } });
+  const feedback = run
+    ? await prisma.feedback.findMany({
+        where: { runId: run.id },
+        select: { studentId: true, rating: true, comment: true, createdAt: true },
+      })
+    : [];
   return {
     launchedAt: workshop.launchedAt,
     lastStepId: workshop.steps.at(-1)?.id ?? null,
     events: markOpenEvents(events).reverse(),
+    feedback,
   };
 }
 

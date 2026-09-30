@@ -9,6 +9,7 @@ const {
   activeSessionEvents,
 } = require('./session');
 const { ensureProgress, toggleHelp } = require('../progress/stateMachine');
+const { submitFeedback } = require('../feedback/feedback');
 
 async function resetDb() {
   await prisma.session.deleteMany();
@@ -261,6 +262,14 @@ describe('workshop sessions', () => {
     await prisma.workshop.delete({ where: { id: git.id } });
     expect(await prisma.workshopRun.count()).toBe(0);
     expect(await prisma.feedback.count()).toBe(0);
+  });
+
+  test('activeSessionEvents includes the feedback of the open run', async () => {
+    await launchWorkshop(prisma, git.id, () => 'GIT234');
+    await joinActiveWorkshop(prisma, { code: 'GIT234', student: maya });
+    await submitFeedback(prisma, git.id, maya.id, { rating: 5, comment: 'Great' });
+    const { feedback } = await activeSessionEvents(prisma);
+    expect(feedback).toEqual([{ studentId: maya.id, rating: 5, comment: 'Great', createdAt: expect.any(Date) }]);
   });
 
   test('deleting a student also deletes their events', async () => {
