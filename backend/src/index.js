@@ -3,6 +3,7 @@ const cors = require('cors');
 const prisma = require('./db');
 const authRoutes = require('./routes/auth');
 const meRoutes = require('./routes/me');
+const accountRoutes = require('./routes/accounts');
 const workshopRoutes = require('./routes/workshops');
 const stepRoutes = require('./routes/steps');
 const progressRoutes = require('./routes/progress');
@@ -17,6 +18,7 @@ app.use(attachUser);
 
 app.use('/api', authRoutes);
 app.use('/api', meRoutes);
+app.use('/api', accountRoutes);
 app.use('/api', workshopRoutes);
 app.use('/api', stepRoutes);
 app.use('/api', progressRoutes);

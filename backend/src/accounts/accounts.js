@@ -1,6 +1,6 @@
 const { hashPassword, verifyPassword } = require('./passwords');
 const { newToken, hashToken } = require('./tokens');
-const { validatePassword, signupKind } = require('./rules');
+const { validatePassword, validateName, isEmail, canDeleteAccount, signupKind } = require('./rules');
 const { normalizeEmail, nameFromEpitechEmail } = require('../sessions/joinIdentity');
 
 const DEFAULT_ADMIN_EMAIL = 'admin@devgoblin.fr';
@@ -109,6 +109,88 @@ async function ensureDefaultAdmin(prisma, password) {
   return 'created';
 }
 
+function invalidEmail() {
+  return new AccountError(400, 'INVALID_EMAIL', 'Enter a valid email address.');
+}
+
+async function updateProfile(prisma, user, { name, email }) {
+  assertValid('INVALID_NAME', validateName(name));
+  const data = { name: name.trim() };
+  const newEmail = email === undefined ? user.email : normalizeEmail(email);
+  if (newEmail !== user.email) {
+    if (user.role !== 'admin') throw new AccountError(400, 'EMAIL_LOCKED', "Your Epitech email can't be changed.");
+    if (!isEmail(newEmail)) throw invalidEmail();
+    await assertEmailFree(prisma, newEmail, user.id);
+    data.email = newEmail;
+  }
+  return prisma.user.update({ where: { id: user.id }, data, select: PUBLIC_FIELDS });
+}
+
+async function changePassword(prisma, { userId, sessionId }, { currentPassword, newPassword }) {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  // 400, not 401: the frontend treats any 401 as "your session is gone".
+  if (!(await verifyPassword(currentPassword, user?.passwordHash))) {
+    throw new AccountError(400, 'WRONG_PASSWORD', 'Current password is wrong.');
+  }
+  assertValid('INVALID_PASSWORD', validatePassword(newPassword));
+  const passwordHash = await hashPassword(newPassword);
+  await prisma.$transaction([
+    prisma.user.update({ where: { id: userId }, data: { passwordHash } }),
+    prisma.session.deleteMany({ where: { userId, id: { not: sessionId } } }),
+  ]);
+}
+
+function listAccounts(prisma) {
+  return prisma.user.findMany({ select: PUBLIC_FIELDS, orderBy: [{ role: 'asc' }, { name: 'asc' }] });
+}
+
+async function createAdmin(prisma, { name, email, password }) {
+  assertValid('INVALID_NAME', validateName(name));
+  const normalized = normalizeEmail(email);
+  if (!isEmail(normalized)) throw invalidEmail();
+  assertValid('INVALID_PASSWORD', validatePassword(password));
+  await assertEmailFree(prisma, normalized);
+  const passwordHash = await hashPassword(password);
+  return prisma.user.create({
+    data: { name: name.trim(), email: normalized, role: 'admin', passwordHash },
+    select: PUBLIC_FIELDS,
+  });
+}
+
+async function findAccountOrThrow(prisma, userId) {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) throw new AccountError(404, 'ACCOUNT_NOT_FOUND', 'Account not found.');
+  return user;
+}
+
+async function resetPassword(prisma, userId, password) {
+  await findAccountOrThrow(prisma, userId);
+  assertValid('INVALID_PASSWORD', validatePassword(password));
+  const passwordHash = await hashPassword(password);
+  await prisma.$transaction([
+    prisma.user.update({ where: { id: userId }, data: { passwordHash } }),
+    prisma.session.deleteMany({ where: { userId } }),
+  ]);
+}
+
+const DELETE_REFUSALS = {
+  CANNOT_DELETE_SELF: "You can't delete your own account.",
+  LAST_ADMIN: "You can't delete the last admin.",
+};
+
+async function deleteAccount(prisma, actorId, targetId) {
+  const target = await findAccountOrThrow(prisma, targetId);
+  const adminCount = await prisma.user.count({ where: { role: 'admin' } });
+  const refusal = canDeleteAccount({ actorId, target, adminCount });
+  if (refusal) throw new AccountError(409, refusal, DELETE_REFUSALS[refusal]);
+  await prisma.$transaction([
+    prisma.stepProgress.deleteMany({ where: { studentId: targetId } }),
+    prisma.participation.deleteMany({ where: { studentId: targetId } }),
+    prisma.session.deleteMany({ where: { userId: targetId } }),
+    prisma.user.delete({ where: { id: targetId } }),
+  ]);
+}
+
 module.exports = {
   AccountError,
   DEFAULT_ADMIN_EMAIL,
@@ -122,4 +204,10 @@ module.exports = {
   logout,
   findSessionByToken,
   ensureDefaultAdmin,
+  updateProfile,
+  changePassword,
+  listAccounts,
+  createAdmin,
+  resetPassword,
+  deleteAccount,
 };
