@@ -1,10 +1,5 @@
 const { ensureProgress } = require('../progress/stateMachine');
-const {
-  generateJoinCode,
-  normalizeJoinCode,
-  normalizeEmail,
-  nameFromEpitechEmail,
-} = require('./joinIdentity');
+const { generateJoinCode, normalizeJoinCode } = require('./joinIdentity');
 
 class SessionError extends Error {
   constructor(status, message) {
@@ -85,30 +80,18 @@ async function checkJoinCode(prisma, code) {
   return { workshopId: workshop.id, title: workshop.title, icon: workshop.icon };
 }
 
-async function findOrCreateStudent(prisma, email, name) {
-  const existing = await prisma.user.findUnique({ where: { email } });
-  if (existing) return existing;
-  return prisma.user.create({ data: { name, email, role: 'student' } });
-}
-
-async function joinActiveWorkshop(prisma, { code, email }) {
-  const name = nameFromEpitechEmail(email);
-  if (!name) throw new SessionError(400, 'Use your Epitech email: firstname.lastname@epitech.eu');
+async function joinActiveWorkshop(prisma, { code, student }) {
+  if (student.role !== 'student') throw new SessionError(403, 'Only students can join a workshop.');
   const workshop = await findActiveByCode(prisma, code);
-  const user = await findOrCreateStudent(prisma, normalizeEmail(email), name);
-  if (user.role !== 'student') throw new SessionError(409, 'This email belongs to an admin account.');
   // joinedAt is set explicitly (not left to @default(now())) so it has the same
   // precision as launchedAt and the ">= launchedAt" comparison stays exact.
   const joinedAt = new Date();
   await prisma.participation.upsert({
-    where: { studentId_workshopId: { studentId: user.id, workshopId: workshop.id } },
-    create: { studentId: user.id, workshopId: workshop.id, joinedAt },
+    where: { studentId_workshopId: { studentId: student.id, workshopId: workshop.id } },
+    create: { studentId: student.id, workshopId: workshop.id, joinedAt },
     update: { joinedAt },
   });
-  return {
-    user: { id: user.id, name: user.name, email: user.email, role: user.role },
-    workshopId: workshop.id,
-  };
+  return { workshopId: workshop.id };
 }
 
 async function activeSessionProgress(prisma) {

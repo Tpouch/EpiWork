@@ -26,12 +26,13 @@ async function createWorkshop(title, stepCount = 2) {
 }
 
 describe('workshop sessions', () => {
-  let git, css;
+  let git, css, maya;
 
   beforeEach(async () => {
     await resetDb();
     git = await createWorkshop('Intro to Git');
     css = await createWorkshop('CSS Basics');
+    maya = await prisma.user.create({ data: { name: 'Maya Lopez', email: 'maya.lopez@epitech.eu', role: 'student' } });
   });
 
   afterAll(async () => {
@@ -72,19 +73,19 @@ describe('workshop sessions', () => {
 
   test('endWorkshop clears the session but keeps step progress', async () => {
     await launchWorkshop(prisma, git.id, () => 'GIT234');
-    const { user } = await joinActiveWorkshop(prisma, { code: 'GIT234', email: 'maya.lopez@epitech.eu' });
+    await joinActiveWorkshop(prisma, { code: 'GIT234', student: maya });
     await activeSessionProgress(prisma);
     await endWorkshop(prisma, git.id);
     const stored = await prisma.workshop.findUnique({ where: { id: git.id } });
     expect(stored).toMatchObject({ isActive: false, joinCode: null });
-    expect(await prisma.stepProgress.count({ where: { studentId: user.id } })).toBe(2);
+    expect(await prisma.stepProgress.count({ where: { studentId: maya.id } })).toBe(2);
     await expect(checkJoinCode(prisma, 'GIT234')).rejects.toMatchObject({ status: 404 });
   });
 
   test('getSessionOverview reports the active session, then the last one once ended', async () => {
     expect(await getSessionOverview(prisma)).toEqual({ active: null, last: null });
     await launchWorkshop(prisma, git.id, () => 'GIT234');
-    await joinActiveWorkshop(prisma, { code: 'GIT234', email: 'maya.lopez@epitech.eu' });
+    await joinActiveWorkshop(prisma, { code: 'GIT234', student: maya });
     expect((await getSessionOverview(prisma)).active).toMatchObject({ workshopId: git.id, joinCode: 'GIT234', participantCount: 1 });
     await endWorkshop(prisma, git.id);
     const overview = await getSessionOverview(prisma);
@@ -97,31 +98,28 @@ describe('workshop sessions', () => {
     expect(await checkJoinCode(prisma, ' git234 ')).toEqual({ workshopId: git.id, title: 'Intro to Git', icon: '🐙' });
   });
 
-  test('joinActiveWorkshop creates a student named from the email', async () => {
+  test('joinActiveWorkshop records the participation and returns the workshop', async () => {
     await launchWorkshop(prisma, git.id, () => 'GIT234');
-    const result = await joinActiveWorkshop(prisma, { code: 'git234', email: ' Jean-Pierre.Dupont@EPITECH.EU ' });
-    expect(result.workshopId).toBe(git.id);
-    expect(result.user).toMatchObject({ name: 'Jean-Pierre Dupont', email: 'jean-pierre.dupont@epitech.eu', role: 'student' });
+    expect(await joinActiveWorkshop(prisma, { code: 'git234', student: maya })).toEqual({ workshopId: git.id });
+    expect(await prisma.participation.count({ where: { studentId: maya.id, workshopId: git.id } })).toBe(1);
   });
 
-  test('joining twice reuses the same student and participation', async () => {
+  test('joining twice reuses the same participation', async () => {
     await launchWorkshop(prisma, git.id, () => 'GIT234');
-    const first = await joinActiveWorkshop(prisma, { code: 'GIT234', email: 'maya.lopez@epitech.eu' });
-    const second = await joinActiveWorkshop(prisma, { code: 'GIT234', email: 'MAYA.LOPEZ@epitech.eu' });
-    expect(second.user.id).toBe(first.user.id);
-    expect(await prisma.user.count({ where: { email: 'maya.lopez@epitech.eu' } })).toBe(1);
+    await joinActiveWorkshop(prisma, { code: 'GIT234', student: maya });
+    await joinActiveWorkshop(prisma, { code: 'GIT234', student: maya });
     expect(await prisma.participation.count()).toBe(1);
   });
 
-  test('joinActiveWorkshop rejects a non-Epitech email without creating a user', async () => {
+  test('joinActiveWorkshop refuses an admin', async () => {
     await launchWorkshop(prisma, git.id, () => 'GIT234');
-    await expect(joinActiveWorkshop(prisma, { code: 'GIT234', email: 'maya@gmail.com' })).rejects.toMatchObject({ status: 400 });
-    expect(await prisma.user.count()).toBe(0);
+    const admin = await prisma.user.create({ data: { name: 'Admin', email: 'admin@devgoblin.fr', role: 'admin' } });
+    await expect(joinActiveWorkshop(prisma, { code: 'GIT234', student: admin })).rejects.toMatchObject({ status: 403 });
   });
 
   test('joinActiveWorkshop rejects a wrong code', async () => {
     await launchWorkshop(prisma, git.id, () => 'GIT234');
-    await expect(joinActiveWorkshop(prisma, { code: 'NOPE22', email: 'maya.lopez@epitech.eu' })).rejects.toMatchObject({ status: 404 });
+    await expect(joinActiveWorkshop(prisma, { code: 'NOPE22', student: maya })).rejects.toMatchObject({ status: 404 });
   });
 
   test('activeSessionProgress lists only students who joined this session', async () => {
@@ -129,7 +127,7 @@ describe('workshop sessions', () => {
     const firstStep = await prisma.step.findFirst({ where: { workshopId: git.id } });
     await prisma.stepProgress.create({ data: { studentId: seeded.id, stepId: firstStep.id, status: 'available' } });
     await launchWorkshop(prisma, git.id, () => 'GIT234');
-    await joinActiveWorkshop(prisma, { code: 'GIT234', email: 'maya.lopez@epitech.eu' });
+    await joinActiveWorkshop(prisma, { code: 'GIT234', student: maya });
     const live = await activeSessionProgress(prisma);
     expect(live.workshop).toMatchObject({ id: git.id, joinCode: 'GIT234' });
     expect(live.workshop.steps).toHaveLength(2);
