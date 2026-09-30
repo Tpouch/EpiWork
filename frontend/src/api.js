@@ -102,6 +102,7 @@ export const api = {
   adminFeed: () => request('/admin/feed'),
   session: () => request('/session'),
   sessionProgress: () => request('/session/progress'),
+  sessionEvents: () => request('/session/events'),
   launchWorkshop: (id) => request(`/workshops/${id}/launch`, { method: 'POST', body: {} }),
   endWorkshop: (id) => request(`/workshops/${id}/end`, { method: 'POST', body: {} }),
   checkJoinCode: (code) => request(`/join/${encodeURIComponent(code)}`),

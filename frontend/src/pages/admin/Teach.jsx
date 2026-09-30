@@ -5,12 +5,13 @@ import { Button, buttonVariants } from '../../components/ui/button';
 import LaunchWorkshopModal from '../../components/LaunchWorkshopModal';
 import JoinInfo from '../../components/JoinInfo';
 import ProgressRail from '../../components/ProgressRail';
+import SessionTimeline from '../../components/SessionTimeline';
 import { api } from '../../api';
 
 const REFRESH_MS = 4000;
 const END_CONFIRMATION = 'End this session? Students will no longer be able to join with this code.';
 
-function LiveSession({ session, progress, error, onShowCode, onEnd }) {
+function LiveSession({ session, progress, activity, error, onShowCode, onEnd }) {
   const count = session.participantCount;
   return (
     <div className="flex flex-col gap-5">
@@ -35,6 +36,11 @@ function LiveSession({ session, progress, error, onShowCode, onEnd }) {
       {progress?.students.length > 0 && (
         <ProgressRail workshop={progress.workshop} studentsProgress={progress.students} />
       )}
+      {activity && (
+        <div className="grid items-start gap-6 lg:grid-cols-[5fr_7fr]">
+          <SessionTimeline activity={activity} />
+        </div>
+      )}
     </div>
   );
 }
@@ -43,6 +49,7 @@ export default function Teach() {
   const location = useLocation();
   const [session, setSession] = useState(undefined);
   const [progress, setProgress] = useState(null);
+  const [activity, setActivity] = useState(null);
   const [error, setError] = useState('');
   const [view, setView] = useState(location.state?.justLaunched ? 'join' : 'live');
   const [picking, setPicking] = useState(false);
@@ -51,7 +58,14 @@ export default function Teach() {
     try {
       const overview = await api.session();
       setSession(overview.active);
-      setProgress(overview.active ? await api.sessionProgress() : null);
+      if (overview.active) {
+        const [nextProgress, nextActivity] = await Promise.all([api.sessionProgress(), api.sessionEvents()]);
+        setProgress(nextProgress);
+        setActivity(nextActivity);
+      } else {
+        setProgress(null);
+        setActivity(null);
+      }
       setError('');
     } catch (err) {
       setError(err.message);
@@ -112,6 +126,7 @@ export default function Teach() {
     <LiveSession
       session={session}
       progress={progress}
+      activity={activity}
       error={error}
       onShowCode={() => setView('join')}
       onEnd={endSession}
