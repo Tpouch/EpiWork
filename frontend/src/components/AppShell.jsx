@@ -15,7 +15,7 @@ const STUDENT_NAV = [{ to: '/', label: 'Workshops', icon: LayoutGrid, end: true 
 function navItemClass({ isActive }) {
   return cn(
     'flex items-center gap-2 border-2 px-3 py-2 text-sm font-semibold uppercase tracking-wide',
-    isActive ? 'border-brutal-ink bg-brutal-lime shadow-brutal-sm' : 'border-transparent hover:border-brutal-ink',
+    isActive ? 'border-brutal-ink bg-brutal-accent shadow-brutal-sm' : 'border-transparent hover:border-brutal-ink',
   );
 }
 
@@ -34,7 +34,7 @@ export default function AppShell({ user, children }) {
         <div className="flex items-center gap-4">
           <NavLink
             to="/account"
-            className="border-2 border-brutal-ink bg-brutal-lime px-2 py-1 text-sm font-semibold uppercase tracking-wide shadow-brutal-sm"
+            className="border-2 border-brutal-ink bg-brutal-accent px-2 py-1 text-sm font-semibold uppercase tracking-wide shadow-brutal-sm"
           >
             {user?.name}
           </NavLink>

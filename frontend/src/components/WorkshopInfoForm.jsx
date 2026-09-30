@@ -43,7 +43,7 @@ export default function WorkshopInfoForm({ workshop, onSave }) {
               aria-pressed={icon === option}
               className={cn(
                 'size-11 border-2 text-2xl cursor-pointer',
-                icon === option ? 'border-brutal-ink bg-brutal-lime shadow-brutal-sm' : 'border-transparent hover:border-brutal-ink',
+                icon === option ? 'border-brutal-ink bg-brutal-accent shadow-brutal-sm' : 'border-transparent hover:border-brutal-ink',
               )}
             >
               {option}
