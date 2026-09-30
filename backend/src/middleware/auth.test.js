@@ -64,6 +64,15 @@ describe('auth middleware', () => {
     expect(next).not.toHaveBeenCalled();
   });
 
+  test('requireAdmin rejects a missing user with 401 so the client returns to login', () => {
+    const req = { user: null };
+    const res = mockRes();
+    const next = jest.fn();
+    requireAdmin(req, res, next);
+    expect(res.status).toHaveBeenCalledWith(401);
+    expect(next).not.toHaveBeenCalled();
+  });
+
   test('requireAdmin allows an admin through', () => {
     const req = { user: { id: 1, role: 'admin' } };
     const res = mockRes();
