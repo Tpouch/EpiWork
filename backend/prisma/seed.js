@@ -52,7 +52,9 @@ async function main() {
     },
   });
 
-  await ensureDefaultAdmin(prisma, process.env.ADMIN_PASSWORD);
+  if ((await ensureDefaultAdmin(prisma, process.env.ADMIN_PASSWORD)) === 'missing-password') {
+    console.warn('ADMIN_PASSWORD is not set: the default admin account was not created.');
+  }
 
   console.log('Seeded workshop', workshop.id, 'with students', alice.id, bilal.id);
 }
