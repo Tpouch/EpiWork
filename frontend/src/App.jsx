@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { currentUser } from './api';
 import Login from './pages/Login';
+import Account from './pages/Account';
 import AppShell from './components/AppShell';
 import WorkshopList from './pages/student/WorkshopList';
 import StepPage from './pages/student/StepPage';
@@ -44,6 +45,7 @@ export default function App() {
                     <Route path="/workshops/:id" element={<StepPage />} />
                   </>
                 )}
+                <Route path="/account" element={<Account />} />
               </Routes>
             </AppShell>
           </RequireUser>
