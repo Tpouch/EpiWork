@@ -17,6 +17,7 @@ model User {
   stepProgress   StepProgress[]
   participations Participation[]
   sessionEvents  SessionEvent[]
+  feedback       Feedback[]
 }
 
 model Session {
@@ -38,6 +39,7 @@ model Workshop {
   steps          Step[]
   participations Participation[]
   sessionEvents  SessionEvent[]
+  runs           WorkshopRun[]
 }
 
 model Participation {
@@ -91,4 +93,26 @@ model SessionEvent {
   type       String
   answer     String?
   createdAt  DateTime @default(now())
+}
+
+model WorkshopRun {
+  id         Int        @id @default(autoincrement())
+  workshopId Int
+  workshop   Workshop   @relation(fields: [workshopId], references: [id], onDelete: Cascade)
+  launchedAt DateTime
+  endedAt    DateTime?
+  feedback   Feedback[]
+}
+
+model Feedback {
+  id        Int         @id @default(autoincrement())
+  runId     Int
+  run       WorkshopRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  studentId Int
+  student   User        @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  rating    Int
+  comment   String?
+  createdAt DateTime
+
+  @@unique([runId, studentId])
 }
