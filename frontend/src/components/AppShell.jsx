@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { House, LayoutGrid, LogOut, Play } from 'lucide-react';
+import { House, LayoutGrid, LogOut, Play, Users } from 'lucide-react';
 import { api } from '../api';
 import { cn } from '@/lib/utils';
 
@@ -7,6 +7,7 @@ const ADMIN_NAV = [
   { to: '/', label: 'Home', icon: House, end: true },
   { to: '/workshops', label: 'Workshops', icon: LayoutGrid },
   { to: '/teach', label: 'Teach', icon: Play },
+  { to: '/accounts', label: 'Accounts', icon: Users },
 ];
 
 const STUDENT_NAV = [{ to: '/', label: 'Workshops', icon: LayoutGrid, end: true }];
