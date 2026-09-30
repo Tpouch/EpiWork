@@ -1,6 +1,6 @@
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import { House, LayoutGrid, LogOut, Play } from 'lucide-react';
-import { setCurrentUser } from '../api';
+import { api } from '../api';
 import { cn } from '@/lib/utils';
 
 const ADMIN_NAV = [
@@ -19,12 +19,11 @@ function navItemClass({ isActive }) {
 }
 
 export default function AppShell({ user, children }) {
-  const navigate = useNavigate();
   const items = user?.role === 'admin' ? ADMIN_NAV : STUDENT_NAV;
 
-  function logout() {
-    setCurrentUser(null);
-    navigate('/login');
+  async function logout() {
+    await api.logout();
+    window.location.assign('/login');
   }
 
   return (
