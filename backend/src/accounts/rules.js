@@ -4,6 +4,8 @@ const DEFAULT_ADMIN_EMAIL = 'admin@devgoblin.fr';
 const MIN_PASSWORD_LENGTH = 8;
 const MAX_NAME_LENGTH = 80;
 const EMAIL_SHAPE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// Names only: the frontend owns the exact colors (all readable with dark text).
+const ACCENT_COLORS = ['lime', 'yellow', 'orange', 'pink', 'violet', 'cyan', 'green'];
 
 function validatePassword(password) {
   if (typeof password !== 'string' || password.length < MIN_PASSWORD_LENGTH) {
@@ -21,6 +23,10 @@ function validateName(name) {
 
 function isEmail(email) {
   return typeof email === 'string' && EMAIL_SHAPE.test(email);
+}
+
+function validateAccentColor(color) {
+  return ACCENT_COLORS.includes(color) ? null : 'Pick one of the available accent colors.';
 }
 
 // The default admin is the account of last resort: only its password may change.
@@ -47,6 +53,8 @@ module.exports = {
   validateName,
   isEmail,
   isProtectedAccount,
+  ACCENT_COLORS,
+  validateAccentColor,
   canDeleteAccount,
   signupKind,
 };

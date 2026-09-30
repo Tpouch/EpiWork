@@ -9,6 +9,7 @@ const {
   createAdmin,
   resetPassword,
   deleteAccount,
+  updateAppearance,
 } = require('./accounts');
 
 async function resetDb() {
@@ -25,7 +26,14 @@ async function createUser(name, email, role, password = 'password1') {
 }
 
 function publicOf(user) {
-  return { id: user.id, name: user.name, email: user.email, role: user.role, isProtected: user.email === 'admin@devgoblin.fr' };
+  return {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    accentColor: user.accentColor ?? 'lime',
+    isProtected: user.email === 'admin@devgoblin.fr',
+  };
 }
 
 describe('accounts: profile and management', () => {
@@ -89,6 +97,21 @@ describe('accounts: profile and management', () => {
   test('changePassword refuses a wrong current password', async () => {
     await expect(changePassword(prisma, { userId: student.id, sessionId: 0 }, { currentPassword: 'nope', newPassword: 'newpassword' }))
       .rejects.toMatchObject({ status: 400, code: 'WRONG_PASSWORD' });
+  });
+
+  test('updateAppearance saves the accent color and returns the updated user', async () => {
+    const updated = await updateAppearance(prisma, student.id, 'violet');
+    expect(updated).toMatchObject({ id: student.id, accentColor: 'violet' });
+    expect((await prisma.user.findUnique({ where: { id: student.id } })).accentColor).toBe('violet');
+  });
+
+  test('updateAppearance refuses an unknown accent color', async () => {
+    await expect(updateAppearance(prisma, student.id, 'blue')).rejects.toMatchObject({ status: 400, code: 'INVALID_ACCENT_COLOR' });
+    expect((await prisma.user.findUnique({ where: { id: student.id } })).accentColor).toBeNull();
+  });
+
+  test('updateAppearance works for the protected default admin', async () => {
+    await expect(updateAppearance(prisma, admin.id, 'orange')).resolves.toMatchObject({ accentColor: 'orange', isProtected: true });
   });
 
   test('changePassword with an empty body is refused with 400', async () => {

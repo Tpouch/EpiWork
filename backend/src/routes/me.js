@@ -1,7 +1,7 @@
 const express = require('express');
 const prisma = require('../db');
 const { requireUser } = require('../middleware/auth');
-const { updateProfile, changePassword } = require('../accounts/accounts');
+const { updateProfile, updateAppearance, changePassword } = require('../accounts/accounts');
 const { sendAccountError } = require('./sendAccountError');
 
 const router = express.Router();
@@ -14,6 +14,14 @@ router.patch('/me', requireUser, async (req, res) => {
   const { name, email } = req.body ?? {};
   try {
     res.json(await updateProfile(prisma, req.user, { name, email }));
+  } catch (err) {
+    sendAccountError(res, err);
+  }
+});
+
+router.patch('/me/appearance', requireUser, async (req, res) => {
+  try {
+    res.json(await updateAppearance(prisma, req.user.id, req.body?.accentColor));
   } catch (err) {
     sendAccountError(res, err);
   }
