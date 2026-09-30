@@ -11,6 +11,7 @@ import WorkshopReview from './pages/admin/WorkshopReview';
 import Workshops from './pages/admin/Workshops';
 import WorkshopDetail from './pages/admin/WorkshopDetail';
 import Teach from './pages/admin/Teach';
+import Accounts from './pages/admin/Accounts';
 
 function RequireUser({ children }) {
   const user = currentUser();
@@ -36,6 +37,7 @@ export default function App() {
                     <Route path="/workshops" element={<Workshops />} />
                     <Route path="/workshops/:id" element={<WorkshopDetail />} />
                     <Route path="/teach" element={<Teach />} />
+                    <Route path="/accounts" element={<Accounts />} />
                     <Route path="/workshops/:id/edit" element={<WorkshopEditor />} />
                     <Route path="/workshops/:id/review" element={<WorkshopReview />} />
                   </>
