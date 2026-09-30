@@ -4,6 +4,8 @@ const {
   validateName,
   isEmail,
   isProtectedAccount,
+  ACCENT_COLORS,
+  validateAccentColor,
   canDeleteAccount,
   signupKind,
 } = require('./rules');
@@ -109,5 +111,18 @@ describe('isProtectedAccount', () => {
   test('any other account is not protected', () => {
     expect(isProtectedAccount({ email: 'sam@devgoblin.fr' })).toBe(false);
     expect(isProtectedAccount(null)).toBe(false);
+  });
+});
+
+describe('validateAccentColor', () => {
+  test('accepts each of the 7 preset names', () => {
+    expect(ACCENT_COLORS).toEqual(['lime', 'yellow', 'orange', 'pink', 'violet', 'cyan', 'green']);
+    for (const color of ACCENT_COLORS) expect(validateAccentColor(color)).toBeNull();
+  });
+
+  test('rejects an unknown name, a hex code or a non-string', () => {
+    expect(validateAccentColor('blue')).toBe('Pick one of the available accent colors.');
+    expect(validateAccentColor('#b7ff4c')).not.toBeNull();
+    expect(validateAccentColor(undefined)).not.toBeNull();
   });
 });

@@ -6,12 +6,14 @@ const {
   validateName,
   isEmail,
   isProtectedAccount,
+  validateAccentColor,
   canDeleteAccount,
   signupKind,
 } = require('./rules');
 const { normalizeEmail, nameFromEpitechEmail } = require('../sessions/joinIdentity');
 
-const PUBLIC_FIELDS = { id: true, name: true, email: true, role: true };
+const PUBLIC_FIELDS = { id: true, name: true, email: true, role: true, accentColor: true };
+const DEFAULT_ACCENT_COLOR = 'lime';
 
 class AccountError extends Error {
   constructor(status, code, message) {
@@ -23,7 +25,14 @@ class AccountError extends Error {
 }
 
 function toPublic(user) {
-  return { id: user.id, name: user.name, email: user.email, role: user.role, isProtected: isProtectedAccount(user) };
+  return {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    accentColor: user.accentColor ?? DEFAULT_ACCENT_COLOR,
+    isProtected: isProtectedAccount(user),
+  };
 }
 
 async function findByEmail(prisma, email) {
@@ -136,6 +145,12 @@ async function updateProfile(prisma, user, { name, email }) {
   return toPublic(await prisma.user.update({ where: { id: user.id }, data, select: PUBLIC_FIELDS }));
 }
 
+// Separate from updateProfile on purpose: the protected base admin may still pick its color.
+async function updateAppearance(prisma, userId, accentColor) {
+  assertValid('INVALID_ACCENT_COLOR', validateAccentColor(accentColor));
+  return toPublic(await prisma.user.update({ where: { id: userId }, data: { accentColor }, select: PUBLIC_FIELDS }));
+}
+
 async function changePassword(prisma, { userId, sessionId }, { currentPassword, newPassword }) {
   const user = await prisma.user.findUnique({ where: { id: userId } });
   // 400, not 401: the frontend treats any 401 as "your session is gone".
@@ -218,6 +233,7 @@ module.exports = {
   findSessionByToken,
   ensureDefaultAdmin,
   updateProfile,
+  updateAppearance,
   changePassword,
   listAccounts,
   createAdmin,
