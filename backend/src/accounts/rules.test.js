@@ -1,4 +1,12 @@
-const { validatePassword, validateName, isEmail, canDeleteAccount, signupKind } = require('./rules');
+const {
+  DEFAULT_ADMIN_EMAIL,
+  validatePassword,
+  validateName,
+  isEmail,
+  isProtectedAccount,
+  canDeleteAccount,
+  signupKind,
+} = require('./rules');
 
 describe('validatePassword', () => {
   test('rejects a 7 character password', () => {
@@ -55,6 +63,11 @@ describe('canDeleteAccount', () => {
     expect(canDeleteAccount({ actorId: 1, target: { id: 2, role: 'admin' }, adminCount: 2 })).toBeNull();
   });
 
+  test('refuses deleting the protected default admin', () => {
+    const target = { id: 1, role: 'admin', email: DEFAULT_ADMIN_EMAIL };
+    expect(canDeleteAccount({ actorId: 2, target, adminCount: 2 })).toBe('PROTECTED_ACCOUNT');
+  });
+
   test('allows deleting a student', () => {
     expect(canDeleteAccount({ actorId: 1, target: { id: 5, role: 'student' }, adminCount: 1 })).toBeNull();
   });
@@ -81,5 +94,16 @@ describe('signupKind', () => {
 
   test('an admin without a password is forbidden', () => {
     expect(signupKind('admin@devgoblin.fr', { role: 'admin', passwordHash: null })).toBe('forbidden');
+  });
+});
+
+describe('isProtectedAccount', () => {
+  test('the default admin is protected', () => {
+    expect(isProtectedAccount({ email: 'admin@devgoblin.fr' })).toBe(true);
+  });
+
+  test('any other account is not protected', () => {
+    expect(isProtectedAccount({ email: 'sam@devgoblin.fr' })).toBe(false);
+    expect(isProtectedAccount(null)).toBe(false);
   });
 });

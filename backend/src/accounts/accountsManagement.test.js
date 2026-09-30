@@ -25,15 +25,16 @@ async function createUser(name, email, role, password = 'password1') {
 }
 
 function publicOf(user) {
-  return { id: user.id, name: user.name, email: user.email, role: user.role };
+  return { id: user.id, name: user.name, email: user.email, role: user.role, isProtected: user.email === 'admin@devgoblin.fr' };
 }
 
 describe('accounts: profile and management', () => {
-  let admin, student;
+  let admin, otherAdmin, student;
 
   beforeEach(async () => {
     await resetDb();
     admin = await createUser('Admin', 'admin@devgoblin.fr', 'admin');
+    otherAdmin = await createUser('Sam Durand', 'sam@devgoblin.fr', 'admin');
     student = await createUser('Lea Martin', 'lea.martin@epitech.eu', 'student');
   });
 
@@ -57,13 +58,28 @@ describe('accounts: profile and management', () => {
   });
 
   test('updateProfile lets an admin change their email', async () => {
-    const updated = await updateProfile(prisma, publicOf(admin), { name: 'Admin', email: 'Boss@DevGoblin.fr' });
+    const updated = await updateProfile(prisma, publicOf(otherAdmin), { name: 'Sam', email: 'Boss@DevGoblin.fr' });
     expect(updated.email).toBe('boss@devgoblin.fr');
   });
 
   test('updateProfile refuses an email used by someone else', async () => {
-    await expect(updateProfile(prisma, publicOf(admin), { name: 'Admin', email: 'lea.martin@epitech.eu' }))
+    await expect(updateProfile(prisma, publicOf(otherAdmin), { name: 'Sam', email: 'lea.martin@epitech.eu' }))
       .rejects.toMatchObject({ status: 409, code: 'EMAIL_TAKEN' });
+  });
+
+  test('updateProfile refuses any change to the protected default admin', async () => {
+    await expect(updateProfile(prisma, publicOf(admin), { name: 'Boss' }))
+      .rejects.toMatchObject({ status: 409, code: 'ACCOUNT_PROTECTED' });
+    expect((await prisma.user.findUnique({ where: { id: admin.id } })).name).toBe('Admin');
+  });
+
+  test('updateProfile refuses a non-string email from an admin', async () => {
+    await expect(updateProfile(prisma, publicOf(otherAdmin), { name: 'Sam', email: 123 }))
+      .rejects.toMatchObject({ status: 400, code: 'INVALID_EMAIL' });
+  });
+
+  test('updateProfile refuses a non-string name', async () => {
+    await expect(updateProfile(prisma, publicOf(student), { name: 42 })).rejects.toMatchObject({ status: 400, code: 'INVALID_NAME' });
   });
 
   test('updateProfile refuses a blank name', async () => {
@@ -73,6 +89,16 @@ describe('accounts: profile and management', () => {
   test('changePassword refuses a wrong current password', async () => {
     await expect(changePassword(prisma, { userId: student.id, sessionId: 0 }, { currentPassword: 'nope', newPassword: 'newpassword' }))
       .rejects.toMatchObject({ status: 400, code: 'WRONG_PASSWORD' });
+  });
+
+  test('changePassword with an empty body is refused with 400', async () => {
+    await expect(changePassword(prisma, { userId: student.id, sessionId: 0 }, {}))
+      .rejects.toMatchObject({ status: 400, code: 'WRONG_PASSWORD' });
+  });
+
+  test('changePassword works for the protected default admin', async () => {
+    await changePassword(prisma, { userId: admin.id, sessionId: 0 }, { currentPassword: 'password1', newPassword: 'newpassword' });
+    await expect(login(prisma, { email: admin.email, password: 'newpassword' })).resolves.toHaveProperty('token');
   });
 
   test('changePassword keeps the current session and ends the others', async () => {
@@ -87,13 +113,14 @@ describe('accounts: profile and management', () => {
 
   test('listAccounts lists admins first without password hashes', async () => {
     const accounts = await listAccounts(prisma);
-    expect(accounts).toEqual([publicOf(admin), publicOf(student)]);
+    expect(accounts).toEqual([publicOf(admin), publicOf(otherAdmin), publicOf(student)]);
+    expect(accounts[0].isProtected).toBe(true);
   });
 
   test('createAdmin creates an admin who can log in', async () => {
-    const created = await createAdmin(prisma, { name: 'Sam Durand', email: 'sam@devgoblin.fr', password: 'temporary1' });
-    expect(created).toMatchObject({ name: 'Sam Durand', role: 'admin' });
-    await expect(login(prisma, { email: 'sam@devgoblin.fr', password: 'temporary1' })).resolves.toHaveProperty('token');
+    const created = await createAdmin(prisma, { name: 'Nora Petit', email: 'nora@devgoblin.fr', password: 'temporary1' });
+    expect(created).toMatchObject({ name: 'Nora Petit', role: 'admin', isProtected: false });
+    await expect(login(prisma, { email: 'nora@devgoblin.fr', password: 'temporary1' })).resolves.toHaveProperty('token');
   });
 
   test('createAdmin refuses an email already in use', async () => {
@@ -111,6 +138,11 @@ describe('accounts: profile and management', () => {
     await resetPassword(prisma, student.id, 'resetpass1');
     expect(await findSessionByToken(prisma, token)).toBeNull();
     await expect(login(prisma, { email: student.email, password: 'resetpass1' })).resolves.toHaveProperty('token');
+  });
+
+  test('resetPassword lets another admin reset the protected default admin', async () => {
+    await resetPassword(prisma, admin.id, 'resetpass1');
+    await expect(login(prisma, { email: admin.email, password: 'resetpass1' })).resolves.toHaveProperty('token');
   });
 
   test('resetPassword refuses an unknown account', async () => {
@@ -134,6 +166,11 @@ describe('accounts: profile and management', () => {
     expect(await prisma.participation.count()).toBe(0);
     expect(await prisma.stepProgress.count()).toBe(0);
     expect(await findSessionByToken(prisma, token)).toBeNull();
+  });
+
+  test('deleteAccount refuses deleting the protected default admin', async () => {
+    await expect(deleteAccount(prisma, otherAdmin.id, admin.id)).rejects.toMatchObject({ status: 409, code: 'PROTECTED_ACCOUNT' });
+    expect(await prisma.user.findUnique({ where: { id: admin.id } })).not.toBeNull();
   });
 
   test('deleteAccount refuses an unknown account', async () => {

@@ -1,9 +1,16 @@
 const { hashPassword, verifyPassword } = require('./passwords');
 const { newToken, hashToken } = require('./tokens');
-const { validatePassword, validateName, isEmail, canDeleteAccount, signupKind } = require('./rules');
+const {
+  DEFAULT_ADMIN_EMAIL,
+  validatePassword,
+  validateName,
+  isEmail,
+  isProtectedAccount,
+  canDeleteAccount,
+  signupKind,
+} = require('./rules');
 const { normalizeEmail, nameFromEpitechEmail } = require('../sessions/joinIdentity');
 
-const DEFAULT_ADMIN_EMAIL = 'admin@devgoblin.fr';
 const PUBLIC_FIELDS = { id: true, name: true, email: true, role: true };
 
 class AccountError extends Error {
@@ -16,7 +23,7 @@ class AccountError extends Error {
 }
 
 function toPublic(user) {
-  return { id: user.id, name: user.name, email: user.email, role: user.role };
+  return { id: user.id, name: user.name, email: user.email, role: user.role, isProtected: isProtectedAccount(user) };
 }
 
 async function findByEmail(prisma, email) {
@@ -91,7 +98,7 @@ async function findSessionByToken(prisma, token) {
     where: { tokenHash: hashToken(token) },
     select: { id: true, user: { select: PUBLIC_FIELDS } },
   });
-  return session ? { sessionId: session.id, user: session.user } : null;
+  return session ? { sessionId: session.id, user: toPublic(session.user) } : null;
 }
 
 // ADMIN_PASSWORD is only the *initial* password: once the admin has one
@@ -114,6 +121,9 @@ function invalidEmail() {
 }
 
 async function updateProfile(prisma, user, { name, email }) {
+  if (isProtectedAccount(user)) {
+    throw new AccountError(409, 'ACCOUNT_PROTECTED', "The base admin account can't be renamed. Only its password can change.");
+  }
   assertValid('INVALID_NAME', validateName(name));
   const data = { name: name.trim() };
   const newEmail = email === undefined ? user.email : normalizeEmail(email);
@@ -123,7 +133,7 @@ async function updateProfile(prisma, user, { name, email }) {
     await assertEmailFree(prisma, newEmail, user.id);
     data.email = newEmail;
   }
-  return prisma.user.update({ where: { id: user.id }, data, select: PUBLIC_FIELDS });
+  return toPublic(await prisma.user.update({ where: { id: user.id }, data, select: PUBLIC_FIELDS }));
 }
 
 async function changePassword(prisma, { userId, sessionId }, { currentPassword, newPassword }) {
@@ -140,8 +150,9 @@ async function changePassword(prisma, { userId, sessionId }, { currentPassword, 
   ]);
 }
 
-function listAccounts(prisma) {
-  return prisma.user.findMany({ select: PUBLIC_FIELDS, orderBy: [{ role: 'asc' }, { name: 'asc' }] });
+async function listAccounts(prisma) {
+  const users = await prisma.user.findMany({ select: PUBLIC_FIELDS, orderBy: [{ role: 'asc' }, { name: 'asc' }] });
+  return users.map(toPublic);
 }
 
 async function createAdmin(prisma, { name, email, password }) {
@@ -151,10 +162,11 @@ async function createAdmin(prisma, { name, email, password }) {
   assertValid('INVALID_PASSWORD', validatePassword(password));
   await assertEmailFree(prisma, normalized);
   const passwordHash = await hashPassword(password);
-  return prisma.user.create({
+  const user = await prisma.user.create({
     data: { name: name.trim(), email: normalized, role: 'admin', passwordHash },
     select: PUBLIC_FIELDS,
   });
+  return toPublic(user);
 }
 
 async function findAccountOrThrow(prisma, userId) {
@@ -175,6 +187,7 @@ async function resetPassword(prisma, userId, password) {
 
 const DELETE_REFUSALS = {
   CANNOT_DELETE_SELF: "You can't delete your own account.",
+  PROTECTED_ACCOUNT: "The base admin account can't be deleted.",
   LAST_ADMIN: "You can't delete the last admin.",
 };
 
