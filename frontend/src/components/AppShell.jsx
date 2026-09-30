@@ -31,7 +31,12 @@ export default function AppShell({ user, children }) {
       <header className="h-14 flex items-center justify-between px-4 border-b-2 border-brutal-ink bg-brutal-bg">
         <h1 className="text-lg font-heading">{'{ EPIWORK }'}</h1>
         <div className="flex items-center gap-4">
-          <span className="text-sm uppercase tracking-wide">{user?.name}</span>
+          <NavLink
+            to="/account"
+            className="border-2 border-brutal-ink bg-brutal-lime px-2 py-1 text-sm font-semibold uppercase tracking-wide shadow-brutal-sm"
+          >
+            {user?.name}
+          </NavLink>
           <button
             type="button"
             onClick={logout}
