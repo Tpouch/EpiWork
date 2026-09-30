@@ -6,12 +6,13 @@ import LaunchWorkshopModal from '../../components/LaunchWorkshopModal';
 import JoinInfo from '../../components/JoinInfo';
 import ProgressRail from '../../components/ProgressRail';
 import SessionTimeline from '../../components/SessionTimeline';
+import ActivityFeed from '../../components/ActivityFeed';
 import { api } from '../../api';
 
 const REFRESH_MS = 4000;
 const END_CONFIRMATION = 'End this session? Students will no longer be able to join with this code.';
 
-function LiveSession({ session, progress, activity, error, onShowCode, onEnd }) {
+function LiveSession({ session, progress, activity, error, onShowCode, onEnd, onEventAction }) {
   const count = session.participantCount;
   return (
     <div className="flex flex-col gap-5">
@@ -39,6 +40,7 @@ function LiveSession({ session, progress, activity, error, onShowCode, onEnd }) 
       {activity && (
         <div className="grid items-start gap-6 lg:grid-cols-[5fr_7fr]">
           <SessionTimeline activity={activity} />
+          <ActivityFeed events={activity.events} onAction={onEventAction} />
         </div>
       )}
     </div>
@@ -96,6 +98,13 @@ export default function Teach() {
     }
   }
 
+  // Errors propagate to the card, which shows the backend message.
+  async function handleEventAction(event) {
+    const action = event.type === 'help_requested' ? api.resolveHelp : api.unlockStep;
+    await action(event.step.id, event.student.id);
+    await refresh();
+  }
+
   if (session === undefined) {
     return error ? <p role="alert" className="text-brutal-red">{error}</p> : <p>Loading...</p>;
   }
@@ -130,6 +139,7 @@ export default function Teach() {
       error={error}
       onShowCode={() => setView('join')}
       onEnd={endSession}
+      onEventAction={handleEventAction}
     />
   );
 }
