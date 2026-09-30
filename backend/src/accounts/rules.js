@@ -1,5 +1,6 @@
 const { nameFromEpitechEmail } = require('../sessions/joinIdentity');
 
+const DEFAULT_ADMIN_EMAIL = 'admin@devgoblin.fr';
 const MIN_PASSWORD_LENGTH = 8;
 const MAX_NAME_LENGTH = 80;
 const EMAIL_SHAPE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -22,8 +23,14 @@ function isEmail(email) {
   return typeof email === 'string' && EMAIL_SHAPE.test(email);
 }
 
+// The default admin is the account of last resort: only its password may change.
+function isProtectedAccount(user) {
+  return user?.email === DEFAULT_ADMIN_EMAIL;
+}
+
 function canDeleteAccount({ actorId, target, adminCount }) {
   if (target.id === actorId) return 'CANNOT_DELETE_SELF';
+  if (isProtectedAccount(target)) return 'PROTECTED_ACCOUNT';
   if (target.role === 'admin' && adminCount <= 1) return 'LAST_ADMIN';
   return null;
 }
@@ -34,4 +41,12 @@ function signupKind(email, existingUser) {
   return nameFromEpitechEmail(email) ? 'signup' : 'forbidden';
 }
 
-module.exports = { validatePassword, validateName, isEmail, canDeleteAccount, signupKind };
+module.exports = {
+  DEFAULT_ADMIN_EMAIL,
+  validatePassword,
+  validateName,
+  isEmail,
+  isProtectedAccount,
+  canDeleteAccount,
+  signupKind,
+};

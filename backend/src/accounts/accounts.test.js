@@ -45,7 +45,7 @@ describe('accounts: authentication', () => {
 
   test('signup creates a student and returns a working token', async () => {
     const { token, user } = await signup(prisma, { email: 'lea.martin@epitech.eu', password: 'longenough' });
-    expect(user).toEqual({ id: expect.any(Number), name: 'Lea Martin', email: 'lea.martin@epitech.eu', role: 'student' });
+    expect(user).toEqual({ id: expect.any(Number), name: 'Lea Martin', email: 'lea.martin@epitech.eu', role: 'student', isProtected: false });
     expect((await findSessionByToken(prisma, token)).user).toEqual(user);
   });
 
@@ -89,6 +89,16 @@ describe('accounts: authentication', () => {
       .rejects.toMatchObject({ status: 401, code: 'INVALID_CREDENTIALS' });
   });
 
+  test('login with an empty body is refused with 401', async () => {
+    await expect(login(prisma, {})).rejects.toMatchObject({ status: 401, code: 'INVALID_CREDENTIALS' });
+  });
+
+  test('login with a non-string password is refused with 401', async () => {
+    await createUser();
+    await expect(login(prisma, { email: 'alice.martin@epitech.eu', password: 12345678 }))
+      .rejects.toMatchObject({ status: 401, code: 'INVALID_CREDENTIALS' });
+  });
+
   test('login refuses an unknown email with the same error', async () => {
     await expect(login(prisma, { email: 'ghost@epitech.eu', password: 'whatever1' }))
       .rejects.toMatchObject({ status: 401, code: 'INVALID_CREDENTIALS' });
@@ -98,7 +108,7 @@ describe('accounts: authentication', () => {
     await createUser();
     const { token } = await login(prisma, { email: 'alice.martin@epitech.eu', password: 'student123' });
     const session = await findSessionByToken(prisma, token);
-    expect(Object.keys(session.user).sort()).toEqual(['email', 'id', 'name', 'role']);
+    expect(Object.keys(session.user).sort()).toEqual(['email', 'id', 'isProtected', 'name', 'role']);
   });
 
   test('findSessionByToken returns null for an unknown token', async () => {
