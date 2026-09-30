@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useLayoutEffect, useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { currentUser } from './api';
+import { applyAccent } from './lib/accent';
 import Login from './pages/Login';
 import Account from './pages/Account';
 import AppShell from './components/AppShell';
@@ -22,6 +23,11 @@ function RequireUser({ children }) {
 
 export default function App() {
   const [user, setUser] = useState(currentUser);
+
+  // Layout effect so the saved color is painted on the first frame, without a lime flash.
+  useLayoutEffect(() => {
+    applyAccent(user?.accentColor);
+  }, [user?.accentColor]);
   return (
     <Routes>
       <Route path="/login" element={<Login />} />

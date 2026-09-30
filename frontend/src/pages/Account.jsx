@@ -1,6 +1,7 @@
 import RoleBadge from '../components/accounts/RoleBadge';
 import ProfileForm from '../components/account/ProfileForm';
 import ChangePasswordForm from '../components/account/ChangePasswordForm';
+import AppearanceCard from '../components/account/AppearanceCard';
 
 export default function Account({ user, onUserChange }) {
   return (
@@ -10,6 +11,7 @@ export default function Account({ user, onUserChange }) {
         <RoleBadge role={user.role} />
       </div>
       <ProfileForm user={user} onSaved={onUserChange} />
+      <AppearanceCard user={user} onSaved={onUserChange} />
       <ChangePasswordForm />
     </div>
   );
