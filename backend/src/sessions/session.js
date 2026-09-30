@@ -75,13 +75,18 @@ async function findActiveByCode(prisma, code) {
   return workshop;
 }
 
-async function checkJoinCode(prisma, code) {
+function assertStudent(student) {
+  if (student.role !== 'student') throw new SessionError(403, 'Only students can join a workshop.');
+}
+
+async function checkJoinCode(prisma, { code, student }) {
+  assertStudent(student);
   const workshop = await findActiveByCode(prisma, code);
   return { workshopId: workshop.id, title: workshop.title, icon: workshop.icon };
 }
 
 async function joinActiveWorkshop(prisma, { code, student }) {
-  if (student.role !== 'student') throw new SessionError(403, 'Only students can join a workshop.');
+  assertStudent(student);
   const workshop = await findActiveByCode(prisma, code);
   // joinedAt is set explicitly (not left to @default(now())) so it has the same
   // precision as launchedAt and the ">= launchedAt" comparison stays exact.

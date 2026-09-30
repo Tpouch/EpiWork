@@ -54,7 +54,7 @@ router.post('/workshops/:id/end', requireAdmin, async (req, res) => {
 
 router.get('/join/:code', requireUser, async (req, res) => {
   try {
-    res.json(await checkJoinCode(prisma, req.params.code));
+    res.json(await checkJoinCode(prisma, { code: req.params.code, student: req.user }));
   } catch (err) {
     sendSessionError(res, err);
   }
