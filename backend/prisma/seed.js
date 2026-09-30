@@ -1,16 +1,25 @@
 const prisma = require('../src/db');
+const { hashPassword } = require('../src/accounts/passwords');
+const { ensureDefaultAdmin } = require('../src/accounts/accounts');
 
 async function main() {
+  await prisma.session.deleteMany();
   await prisma.participation.deleteMany();
   await prisma.stepProgress.deleteMany();
   await prisma.step.deleteMany();
   await prisma.workshop.deleteMany();
   await prisma.user.deleteMany();
 
-  await prisma.user.create({ data: { name: 'Admin', role: 'admin' } });
-  const alice = await prisma.user.create({ data: { name: 'Alice', role: 'student' } });
-  const bilal = await prisma.user.create({ data: { name: 'Bilal', role: 'student' } });
-  await prisma.user.create({ data: { name: 'Chloé', role: 'student' } });
+  const passwordHash = await hashPassword('student123');
+  const alice = await prisma.user.create({
+    data: { name: 'Alice Martin', email: 'alice.martin@epitech.eu', role: 'student', passwordHash },
+  });
+  const bilal = await prisma.user.create({
+    data: { name: 'Bilal Haddad', email: 'bilal.haddad@epitech.eu', role: 'student', passwordHash },
+  });
+  await prisma.user.create({
+    data: { name: 'Chloe Bernard', email: 'chloe.bernard@epitech.eu', role: 'student', passwordHash },
+  });
 
   const workshop = await prisma.workshop.create({
     data: {
@@ -42,6 +51,8 @@ async function main() {
       },
     },
   });
+
+  await ensureDefaultAdmin(prisma, process.env.ADMIN_PASSWORD);
 
   console.log('Seeded workshop', workshop.id, 'with students', alice.id, bilal.id);
 }
