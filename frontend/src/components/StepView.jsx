@@ -51,6 +51,7 @@ export default function StepView({
   onAnswerChange,
   onSubmit,
   onRequestHelp,
+  isLastStep = false,
   readOnly = false,
 }) {
   return (
@@ -65,10 +66,14 @@ export default function StepView({
         ) : step.isCheckpoint ? (
           <>
             <CheckpointQuestion step={step} answer={answer} onAnswerChange={onAnswerChange} readOnly={readOnly} />
-            <Button onClick={onSubmit} disabled={readOnly || !canSubmitAnswer(step, answer)}>Submit answer</Button>
+            <Button onClick={onSubmit} disabled={readOnly || !canSubmitAnswer(step, answer)}>
+              {isLastStep ? 'Submit and finish' : 'Submit answer'}
+            </Button>
           </>
         ) : (
-          <Button onClick={onSubmit} disabled={readOnly}>Mark done, next step</Button>
+          <Button onClick={onSubmit} disabled={readOnly}>
+            {isLastStep ? 'Finish workshop' : 'Mark done, next step'}
+          </Button>
         )}
         <div>
           <Button
