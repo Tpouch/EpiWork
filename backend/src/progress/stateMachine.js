@@ -40,7 +40,7 @@ async function completeStep(prisma, progressId, step) {
 async function submitAnswer(prisma, stepId, studentId, answer) {
   const progress = await prisma.stepProgress.findFirst({ where: { stepId, studentId } });
   const step = await prisma.step.findUnique({ where: { id: stepId } });
-  if (!progress || progress.status !== 'available') {
+  if (progress?.status !== 'available') {
     throw new Error('Step is not available for this student');
   }
   if (step.isCheckpoint) {
@@ -54,7 +54,7 @@ async function submitAnswer(prisma, stepId, studentId, answer) {
 
 async function unlockStep(prisma, stepId, studentId) {
   const progress = await prisma.stepProgress.findFirst({ where: { stepId, studentId } });
-  if (!progress || progress.status !== 'pending_review') {
+  if (progress?.status !== 'pending_review') {
     throw new Error('Step is not pending review');
   }
   const step = await prisma.step.findUnique({ where: { id: stepId } });
