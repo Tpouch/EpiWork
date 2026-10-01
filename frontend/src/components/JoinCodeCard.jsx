@@ -25,7 +25,19 @@ export default function JoinCodeCard() {
   return (
     <Card>
       <CardContent>
-        {!workshop ? (
+        {workshop ? (
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="font-semibold">
+              Join {workshop.icon} {workshop.title}?
+            </p>
+            <div className="flex gap-2">
+              <Button variant="neutral" onClick={() => setWorkshop(null)}>Use another code</Button>
+              <Button onClick={() => join.run()} disabled={join.busy}>
+                {join.busy ? 'Joining...' : 'Join workshop'}
+              </Button>
+            </div>
+          </div>
+        ) : (
           <form onSubmit={submit} className="flex flex-col gap-3 sm:flex-row sm:items-end">
             <div className="flex flex-1 flex-col gap-2">
               <Label htmlFor="join-code">Join a workshop</Label>
@@ -43,18 +55,6 @@ export default function JoinCodeCard() {
               {check.busy ? 'Checking...' : 'Continue'}
             </Button>
           </form>
-        ) : (
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <p className="font-semibold">
-              Join {workshop.icon} {workshop.title}?
-            </p>
-            <div className="flex gap-2">
-              <Button variant="neutral" onClick={() => setWorkshop(null)}>Use another code</Button>
-              <Button onClick={() => join.run()} disabled={join.busy}>
-                {join.busy ? 'Joining...' : 'Join workshop'}
-              </Button>
-            </div>
-          </div>
         )}
         {(check.error || join.error) && (
           <p role="alert" className="mt-2 text-sm text-brutal-red">{check.error || join.error}</p>
