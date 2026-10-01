@@ -22,7 +22,7 @@ export default function WorkshopFinished({ workshopTitle, feedback, canRate, onR
       {canRateNow && <p className="opacity-70">You skipped the rating.</p>}
       <div className="flex flex-wrap justify-center gap-3">
         {canRateNow && <Button onClick={onRate}>Rate this workshop</Button>}
-        <Link to="/" className={buttonVariants({ variant: 'neutral' })}>Back to my workshops</Link>
+        <Link to="/my-workshops" className={buttonVariants({ variant: 'neutral' })}>Back to my workshops</Link>
       </div>
     </div>
   );
