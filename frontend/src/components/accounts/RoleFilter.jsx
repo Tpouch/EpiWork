@@ -8,7 +8,7 @@ const OPTIONS = [
 
 export default function RoleFilter({ value, onChange }) {
   return (
-    <div role="group" aria-label="Filter by role" className="flex">
+    <fieldset aria-label="Filter by role" className="flex">
       {OPTIONS.map((option) => (
         <button
           key={option.value}
@@ -23,6 +23,6 @@ export default function RoleFilter({ value, onChange }) {
           {option.label}
         </button>
       ))}
-    </div>
+    </fieldset>
   );
 }

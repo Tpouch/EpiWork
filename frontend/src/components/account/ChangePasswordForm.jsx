@@ -45,10 +45,10 @@ export default function ChangePasswordForm() {
               {busy ? 'Updating...' : 'Update password'}
             </Button>
             {saved && (
-              <span role="status" className="flex items-center gap-1 border-2 border-brutal-ink bg-brutal-green px-2 py-1 text-xs font-semibold">
+              <output className="flex items-center gap-1 border-2 border-brutal-ink bg-brutal-green px-2 py-1 text-xs font-semibold">
                 <Check className="size-3" aria-hidden="true" />
                 Password updated
-              </span>
+              </output>
             )}
           </div>
         </form>
