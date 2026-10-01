@@ -7,8 +7,7 @@ export default function WorkshopCard({ workshop, meta, onOpen }) {
     >
       {workshop.isActive && (
         <span className="absolute right-3 top-3 flex items-center gap-1 border-2 border-brutal-ink bg-brutal-green px-1.5 text-[10px] font-bold uppercase">
-          <span className="size-1.5 rounded-full bg-brutal-ink" aria-hidden="true" />
-          Live
+          <span className="size-1.5 rounded-full bg-brutal-ink" aria-hidden="true" />Live
         </span>
       )}
       <span className="text-3xl" aria-hidden="true">{workshop.icon}</span>
