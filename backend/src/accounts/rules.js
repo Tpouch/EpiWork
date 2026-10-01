@@ -3,7 +3,7 @@ const { nameFromEpitechEmail } = require('../sessions/joinIdentity');
 const DEFAULT_ADMIN_EMAIL = 'admin@devgoblin.fr';
 const MIN_PASSWORD_LENGTH = 8;
 const MAX_NAME_LENGTH = 80;
-const EMAIL_SHAPE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const EMAIL_SHAPE = /^[^\s@]+@[^\s@.]+(?:\.[^\s@.]+)+$/;
 
 function validatePassword(password) {
   if (typeof password !== 'string' || password.length < MIN_PASSWORD_LENGTH) {

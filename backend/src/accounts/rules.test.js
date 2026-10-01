@@ -48,6 +48,10 @@ describe('isEmail', () => {
     expect(isEmail('sam@devgoblin')).toBe(false);
     expect(isEmail(undefined)).toBe(false);
   });
+
+  test('rejects a domain with an empty label', () => {
+    expect(isEmail('sam@devgoblin..fr')).toBe(false);
+  });
 });
 
 describe('canDeleteAccount', () => {
