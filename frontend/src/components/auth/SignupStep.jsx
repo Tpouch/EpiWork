@@ -11,7 +11,7 @@ export default function SignupStep({ email, name, onChangeEmail }) {
   const { busy, error, run } = useAsyncAction(async () => {
     if (password !== confirm) throw new Error('Passwords do not match.');
     await api.signup(email.trim(), password);
-    window.location.assign('/');
+    globalThis.location.assign('/');
   });
 
   function submit(event) {

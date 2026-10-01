@@ -42,7 +42,7 @@ async function request(path, options = {}) {
   // /auth/* 401s are wrong credentials and must not wipe another tab's session.
   if (res.status === 401 && token && !path.startsWith('/auth/')) {
     saveSession(null);
-    window.location.assign('/login');
+    globalThis.location.assign('/login');
   }
   if (!res.ok) {
     const text = await res.text();

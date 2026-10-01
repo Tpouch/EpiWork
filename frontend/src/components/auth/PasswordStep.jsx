@@ -10,7 +10,7 @@ export default function PasswordStep({ email, onChangeEmail }) {
   const { busy, error, run } = useAsyncAction(async () => {
     await api.login(email.trim(), password);
     // Full reload so App re-reads the stored user and picks the right routes.
-    window.location.assign('/');
+    globalThis.location.assign('/');
   });
 
   function submit(event) {

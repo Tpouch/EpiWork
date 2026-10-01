@@ -19,13 +19,13 @@ function navItemClass({ isActive }) {
   );
 }
 
+async function logout() {
+  await api.logout();
+  globalThis.location.assign('/login');
+}
+
 export default function AppShell({ user, children }) {
   const items = user?.role === 'admin' ? ADMIN_NAV : STUDENT_NAV;
-
-  async function logout() {
-    await api.logout();
-    window.location.assign('/login');
-  }
 
   return (
     <div className="min-h-screen flex flex-col">
