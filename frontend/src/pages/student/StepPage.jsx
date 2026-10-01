@@ -10,6 +10,8 @@ import { Button } from '../../components/ui/button';
 import { cn } from '@/lib/utils';
 import { api } from '../../api';
 
+const POLL_MS = 4000;
+
 // Reads the backend statuses: every step done, or only the last checkpoint awaiting review.
 function isFinished(rows) {
   const last = rows.at(-1);
@@ -19,6 +21,17 @@ function isFinished(rows) {
 
 function isActionable(row) {
   return row.status === 'available' || row.status === 'pending_review';
+}
+
+function currentRow(rows) {
+  return rows.find(isActionable) ?? rows.at(-1);
+}
+
+// The admin reviews answers and resolves help from another page, so nothing else tells this one.
+function isWaitingOnAdmin(rows) {
+  if (!rows?.length || isFinished(rows)) return false;
+  const current = currentRow(rows);
+  return current.status === 'pending_review' || current.helpRequested;
 }
 
 function HelpButton({ requested, disabled, onClick }) {
@@ -53,7 +66,6 @@ export default function StepPage() {
     const [data, nextRating] = await Promise.all([api.myWorkshopProgress(id), api.myFeedback(id)]);
     setRows(data);
     setRating(nextRating);
-    setViewedStepId(null);
   }
 
   useEffect(() => {
@@ -61,12 +73,20 @@ export default function StepPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
+  const waitingOnAdmin = isWaitingOnAdmin(rows);
+  useEffect(() => {
+    if (!waitingOnAdmin) return undefined;
+    const timer = setInterval(() => load().catch((err) => setError(err.message)), POLL_MS);
+    return () => clearInterval(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, waitingOnAdmin]);
+
   const errorAlert = error && <p role="alert" className="text-brutal-red">{error}</p>;
   if (!rows || !rating || !workshop) return errorAlert || <p>Loading...</p>;
   if (rows.length === 0) return <p className="opacity-70">This workshop has no steps yet.</p>;
 
   // Help always targets the step the student is on, even while re-reading a finished one.
-  const current = rows.find(isActionable) ?? rows.at(-1);
+  const current = currentRow(rows);
   const viewed = rows.find((row) => row.stepId === viewedStepId) ?? current;
   const viewedIndex = rows.indexOf(viewed);
   const isLastStep = viewed === rows.at(-1);
@@ -78,6 +98,7 @@ export default function StepPage() {
       await api.submitStep(viewed.stepId, answer);
       setAnswer('');
       await load();
+      setViewedStepId(null);
       if (isLastStep) setFinishOpen(true);
     } catch (err) {
       setError(err.message);
