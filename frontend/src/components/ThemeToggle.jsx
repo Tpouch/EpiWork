@@ -1,15 +1,15 @@
 import { useState } from 'react';
 import { Moon, Sun } from 'lucide-react';
-import { currentTheme, setTheme } from '../lib/theme';
+import { currentTheme, setTheme as applyTheme } from '../lib/theme';
 
 export default function ThemeToggle() {
-  const [theme, setThemeState] = useState(currentTheme);
+  const [theme, setTheme] = useState(currentTheme);
   const isDark = theme === 'dark';
 
   function toggle() {
     const next = isDark ? 'light' : 'dark';
+    applyTheme(next);
     setTheme(next);
-    setThemeState(next);
   }
 
   const Icon = isDark ? Sun : Moon;

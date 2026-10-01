@@ -2,7 +2,7 @@
 const STORAGE_KEY = 'epiwork_theme';
 
 function systemTheme() {
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  return globalThis.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 }
 
 export function currentTheme() {
