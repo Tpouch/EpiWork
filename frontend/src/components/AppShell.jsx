@@ -12,7 +12,10 @@ const ADMIN_NAV = [
   { to: '/accounts', label: 'Accounts', icon: Users },
 ];
 
-const STUDENT_NAV = [{ to: '/', label: 'Workshops', icon: LayoutGrid, end: true }];
+const STUDENT_NAV = [
+  { to: '/', label: 'Home', icon: House, end: true },
+  { to: '/my-workshops', label: 'My workshops', icon: LayoutGrid },
+];
 
 function navItemClass({ isActive }) {
   return cn(

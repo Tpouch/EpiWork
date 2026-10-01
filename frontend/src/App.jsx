@@ -6,7 +6,7 @@ import Login from './pages/Login';
 import Account from './pages/Account';
 import NotFound from './pages/NotFound';
 import AppShell from './components/AppShell';
-import WorkshopList from './pages/student/WorkshopList';
+import StudentHome from './pages/student/StudentHome';
 import StepPage from './pages/student/StepPage';
 import AdminHome from './pages/admin/AdminHome';
 import WorkshopEditor from './pages/admin/WorkshopEditor';
@@ -55,14 +55,14 @@ export default function App() {
                   </>
                 ) : (
                   <>
-                    <Route path="/" element={<WorkshopList />} />
+                    <Route path="/" element={<StudentHome />} />
                     <Route path="/workshops/:id" element={<StepPage />} />
                   </>
                 )}
                 <Route path="/account" element={<Account user={user} onUserChange={setUser} />} />
                 <Route
                   path="*"
-                  element={<NotFound homeLabel={user?.role === 'admin' ? 'Back to home' : 'Back to my workshops'} />}
+                  element={<NotFound homeLabel="Back to home" />}
                 />
               </Routes>
             </AppShell>
