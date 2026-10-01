@@ -6,6 +6,60 @@ import { RadioGroup, RadioGroupItem } from '../../components/ui/radio-group';
 import { Label } from '../../components/ui/label';
 import { api } from '../../api';
 
+function canSubmitAnswer(questionType, answer) {
+  if (questionType === 'text') return answer.trim().length > 0;
+  if (questionType === 'multiple_choice') return !!answer;
+  return true;
+}
+
+function CheckpointQuestion({ step, answer, setAnswer }) {
+  if (step.questionType === 'multiple_choice') {
+    const options = step.questionOptions ? JSON.parse(step.questionOptions) : [];
+    return (
+      <div>
+        <p className="mb-2">{step.questionPrompt}</p>
+        <RadioGroup value={answer} onValueChange={setAnswer} className="flex flex-col gap-2">
+          {options.map((opt) => (
+            <label key={opt} className="flex items-center gap-2">
+              <RadioGroupItem value={opt} />
+              {opt}
+            </label>
+          ))}
+        </RadioGroup>
+      </div>
+    );
+  }
+  if (step.questionType === 'confirm') {
+    return <p className="opacity-70">{step.questionPrompt || 'Confirm you completed this step.'}</p>;
+  }
+  return (
+    <div className="flex flex-col gap-1">
+      <Label htmlFor="step-answer">{step.questionPrompt}</Label>
+      <Textarea
+        id="step-answer"
+        value={answer}
+        onChange={(e) => setAnswer(e.target.value)}
+        rows={4}
+      />
+    </div>
+  );
+}
+
+function StepAnswer({ active, answer, setAnswer, submit }) {
+  if (active.status === 'pending_review') {
+    return <p className="opacity-70">Waiting for the admin to review your answer.</p>;
+  }
+  if (!active.step.isCheckpoint) {
+    return <Button onClick={submit}>Mark done, next step</Button>;
+  }
+  return (
+    <>
+      <CheckpointQuestion step={active.step} answer={answer} setAnswer={setAnswer} />
+      <Button onClick={submit} disabled={!canSubmitAnswer(active.step.questionType, answer)}>Submit answer</Button>
+    </>
+  );
+}
+
 export default function StepPage() {
   const { id } = useParams();
   const [rows, setRows] = useState([]);
@@ -38,12 +92,6 @@ export default function StepPage() {
     load();
   }
 
-  const options = active.step.questionOptions ? JSON.parse(active.step.questionOptions) : [];
-  const canSubmit =
-    active.step.questionType === 'text' ? answer.trim().length > 0 :
-    active.step.questionType === 'multiple_choice' ? !!answer :
-    true;
-
   return (
     <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
       <div className="md:col-span-7">
@@ -51,40 +99,7 @@ export default function StepPage() {
         <p className="mt-2">{active.step.content}</p>
       </div>
       <div className="md:col-span-5 flex flex-col gap-4">
-        {active.status === 'pending_review' ? (
-          <p className="opacity-70">Waiting for the admin to review your answer.</p>
-        ) : active.step.isCheckpoint ? (
-          <>
-            {active.step.questionType === 'multiple_choice' ? (
-              <div>
-                <p className="mb-2">{active.step.questionPrompt}</p>
-                <RadioGroup value={answer} onValueChange={setAnswer} className="flex flex-col gap-2">
-                  {options.map((opt) => (
-                    <label key={opt} className="flex items-center gap-2">
-                      <RadioGroupItem value={opt} />
-                      {opt}
-                    </label>
-                  ))}
-                </RadioGroup>
-              </div>
-            ) : active.step.questionType === 'confirm' ? (
-              <p className="opacity-70">{active.step.questionPrompt || 'Confirm you completed this step.'}</p>
-            ) : (
-              <div className="flex flex-col gap-1">
-                <Label htmlFor="step-answer">{active.step.questionPrompt}</Label>
-                <Textarea
-                  id="step-answer"
-                  value={answer}
-                  onChange={(e) => setAnswer(e.target.value)}
-                  rows={4}
-                />
-              </div>
-            )}
-            <Button onClick={submit} disabled={!canSubmit}>Submit answer</Button>
-          </>
-        ) : (
-          <Button onClick={submit}>Mark done, next step</Button>
-        )}
+        <StepAnswer active={active} answer={answer} setAnswer={setAnswer} submit={submit} />
         <div>
           <Button
             variant="neutral"
