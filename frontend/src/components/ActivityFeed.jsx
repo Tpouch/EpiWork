@@ -3,7 +3,7 @@ import ActivityCard from './ActivityCard';
 import SectionHeader from './SectionHeader';
 import { Button } from './ui/button';
 
-const CARD_TYPES = ['help_requested', 'checkpoint_submitted', 'step_done'];
+const CARD_TYPES = new Set(['help_requested', 'checkpoint_submitted', 'step_done']);
 const FILTERS = {
   All: () => true,
   Help: (event) => event.type === 'help_requested',
@@ -25,7 +25,7 @@ function CardGroup({ label, events, onAction }) {
 
 export default function ActivityFeed({ events, onAction }) {
   const [filter, setFilter] = useState('All');
-  const cards = events.filter((event) => CARD_TYPES.includes(event.type) && FILTERS[filter](event));
+  const cards = events.filter((event) => CARD_TYPES.has(event.type) && FILTERS[filter](event));
   const openCount = events.filter((event) => event.open).length;
   return (
     <section aria-label="Activity" className="flex flex-col gap-3">
