@@ -93,25 +93,11 @@ async function checkJoinCode(prisma, { code, student }) {
   return { workshopId: workshop.id, title: workshop.title, icon: workshop.icon };
 }
 
-// Progress survives between runs of a workshop: re-log what still waits for
-// the admin, so it shows up in this run's activity.
-function carriedOverEvents(prisma, workshopId, row) {
-  const base = { workshopId, studentId: row.studentId, stepId: row.stepId };
-  const events = [];
-  if (row.status === 'pending_review') {
-    events.push(recordEvent(prisma, { ...base, type: 'checkpoint_submitted', answer: row.submittedAnswer }));
-  }
-  if (row.helpRequested) events.push(recordEvent(prisma, { ...base, type: 'help_requested' }));
-  return events;
-}
-
-async function joinEvents(prisma, workshopId, studentId) {
-  const waiting = await prisma.stepProgress.findMany({
-    where: { studentId, step: { workshopId }, OR: [{ status: 'pending_review' }, { helpRequested: true }] },
-  });
+// A new session starts the workshop over, so nothing from an earlier run waits for the admin.
+function newJoinWrites(prisma, workshopId, studentId) {
   return [
+    prisma.stepProgress.deleteMany({ where: { studentId, step: { workshopId } } }),
     recordEvent(prisma, { workshopId, studentId, type: 'joined' }),
-    ...waiting.flatMap((row) => carriedOverEvents(prisma, workshopId, row)),
   ];
 }
 
@@ -131,7 +117,7 @@ async function joinActiveWorkshop(prisma, { code, student }) {
       create: { studentId: student.id, workshopId: workshop.id, joinedAt },
       update: { joinedAt },
     }),
-    ...(alreadyJoined ? [] : await joinEvents(prisma, workshop.id, student.id)),
+    ...(alreadyJoined ? [] : newJoinWrites(prisma, workshop.id, student.id)),
   ]);
   return { workshopId: workshop.id };
 }

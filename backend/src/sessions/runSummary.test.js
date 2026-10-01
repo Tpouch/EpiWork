@@ -52,9 +52,9 @@ describe('summarizeRun', () => {
     expect(students[0].reached.number).toBe(2);
   });
 
-  test('steps done in an earlier run still count', () => {
+  test('steps done in an earlier run do not count', () => {
     const { students } = summary([done(maya, 1, -30), done(maya, 2, -25), done(maya, 3, -20), joined(maya, 1)]);
-    expect(students[0].reached.finished).toBe(true);
+    expect(students[0].reached).toEqual({ finished: false, number: 1, title: 'Setup' });
   });
 
   test('a live run has no end limit', () => {

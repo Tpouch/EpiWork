@@ -203,7 +203,26 @@ describe('workshop sessions', () => {
     expect(result.lastStepId).toBe(second.id);
   });
 
-  test('help and checkpoints left from an earlier run show up again when the student joins', async () => {
+  test('joining a new session restarts the student at step 1', async () => {
+    await ensureProgress(prisma, git.id, maya.id);
+    await prisma.stepProgress.updateMany({ where: { studentId: maya.id }, data: { status: 'done' } });
+    await launchWorkshop(prisma, git.id, () => 'GIT234');
+    await joinActiveWorkshop(prisma, { code: 'GIT234', student: maya });
+    const rows = await ensureProgress(prisma, git.id, maya.id);
+    expect(rows.map((row) => row.status)).toEqual(['available', 'locked']);
+  });
+
+  test('re-entering the code in the same session keeps the progress', async () => {
+    await launchWorkshop(prisma, git.id, () => 'GIT234');
+    await joinActiveWorkshop(prisma, { code: 'GIT234', student: maya });
+    const [first] = await ensureProgress(prisma, git.id, maya.id);
+    await prisma.stepProgress.update({ where: { id: first.id }, data: { status: 'done' } });
+    await joinActiveWorkshop(prisma, { code: 'GIT234', student: maya });
+    const rows = await ensureProgress(prisma, git.id, maya.id);
+    expect(rows.map((row) => row.status)).toEqual(['done', 'locked']);
+  });
+
+  test('help and checkpoints left from an earlier run are dropped when the student joins', async () => {
     const [first] = await ensureProgress(prisma, git.id, maya.id);
     await prisma.stepProgress.update({
       where: { id: first.id },
@@ -212,11 +231,7 @@ describe('workshop sessions', () => {
     await launchWorkshop(prisma, git.id, () => 'GIT234');
     await joinActiveWorkshop(prisma, { code: 'GIT234', student: maya });
     const { events } = await activeSessionEvents(prisma);
-    expect(events.map((e) => [e.type, e.stepId, e.answer, e.open])).toEqual([
-      ['help_requested', first.stepId, null, true],
-      ['checkpoint_submitted', first.stepId, 'old answer', true],
-      ['joined', null, null, false],
-    ]);
+    expect(events.map((e) => e.type)).toEqual(['joined']);
   });
 
   test('launching creates a run with the same launchedAt', async () => {

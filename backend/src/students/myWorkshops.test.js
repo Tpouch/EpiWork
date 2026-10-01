@@ -24,6 +24,10 @@ function setStatus(student, step, status) {
   return prisma.stepProgress.create({ data: { studentId: student.id, stepId: step.id, status } });
 }
 
+function logEvent(student, workshop, step, type) {
+  return prisma.sessionEvent.create({ data: { workshopId: workshop.id, studentId: student.id, stepId: step.id, type } });
+}
+
 describe('my workshops', () => {
   let maya, tom, git, docker;
 
@@ -83,6 +87,43 @@ describe('my workshops', () => {
     await join(maya, git);
     await join(tom, git);
     await setStatus(tom, first, 'done');
+    const [workshop] = await listMyWorkshops(prisma, maya.id);
+    expect(workshop).toMatchObject({ doneCount: 0, finished: false });
+  });
+
+  test('stays finished while the student redoes a workshop finished in an earlier session', async () => {
+    const first = await addStep(git, 1);
+    const second = await addStep(git, 2);
+    await join(maya, git);
+    await setStatus(maya, first, 'available');
+    await logEvent(maya, git, second, 'step_done');
+    const [workshop] = await listMyWorkshops(prisma, maya.id);
+    expect(workshop).toMatchObject({ stepCount: 2, doneCount: 2, finished: true });
+  });
+
+  test('a last checkpoint submitted in an earlier session counts as finished', async () => {
+    await addStep(git, 1);
+    const second = await addStep(git, 2);
+    await join(maya, git);
+    await logEvent(maya, git, second, 'checkpoint_submitted');
+    const [workshop] = await listMyWorkshops(prisma, maya.id);
+    expect(workshop).toMatchObject({ doneCount: 2, finished: true });
+  });
+
+  test('an earlier session that stopped before the last step does not count as finished', async () => {
+    const first = await addStep(git, 1);
+    await addStep(git, 2);
+    await join(maya, git);
+    await logEvent(maya, git, first, 'step_done');
+    const [workshop] = await listMyWorkshops(prisma, maya.id);
+    expect(workshop).toMatchObject({ doneCount: 0, finished: false });
+  });
+
+  test("ignores other students' earlier sessions", async () => {
+    await addStep(git, 1);
+    const second = await addStep(git, 2);
+    await join(maya, git);
+    await logEvent(tom, git, second, 'step_done');
     const [workshop] = await listMyWorkshops(prisma, maya.id);
     expect(workshop).toMatchObject({ doneCount: 0, finished: false });
   });
