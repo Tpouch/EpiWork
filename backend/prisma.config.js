@@ -1,5 +1,5 @@
-const fs = require('fs');
-const path = require('path');
+const fs = require('node:fs');
+const path = require('node:path');
 const { defineConfig } = require('prisma/config');
 
 // Prisma 7's config file is evaluated before .env is loaded elsewhere in the
