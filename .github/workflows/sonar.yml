@@ -1,0 +1,37 @@
+name: SonarQube
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  sonar:
+    name: Analyze
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # full history, needed for blame and new code detection
+
+      # Pull requests: explicit PR parameters (required with the community plugin)
+      - name: Scan (pull request)
+        if: github.event_name == 'pull_request'
+        uses: SonarSource/sonarqube-scan-action@v6
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        with:
+          args: >
+            -Dsonar.pullrequest.key=${{ github.event.pull_request.number }}
+            -Dsonar.pullrequest.branch=${{ github.head_ref }}
+            -Dsonar.pullrequest.base=${{ github.base_ref }}
+
+      # Pushes to main: normal analysis of the main branch
+      - name: Scan (main branch)
+        if: github.event_name == 'push'
+        uses: SonarSource/sonarqube-scan-action@v6
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
