@@ -108,7 +108,7 @@ describe('accounts: authentication', () => {
     await createUser();
     const { token } = await login(prisma, { email: 'alice.martin@epitech.eu', password: 'student123' });
     const session = await findSessionByToken(prisma, token);
-    expect(Object.keys(session.user).sort()).toEqual(['email', 'id', 'isProtected', 'name', 'role']);
+    expect(Object.keys(session.user).sort((a, b) => a.localeCompare(b))).toEqual(['email', 'id', 'isProtected', 'name', 'role']);
   });
 
   test('findSessionByToken returns null for an unknown token', async () => {
