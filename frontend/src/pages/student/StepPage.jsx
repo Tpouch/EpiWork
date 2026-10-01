@@ -4,6 +4,54 @@ import { Button, Grid, Group, Radio, Stack, Text, Textarea, Title } from '@manti
 import { api } from '../../api';
 import { signalColors } from '../../theme';
 
+function canSubmitAnswer(questionType, answer) {
+  if (questionType === 'text') return answer.trim().length > 0;
+  if (questionType === 'multiple_choice') return !!answer;
+  return true;
+}
+
+function CheckpointQuestion({ step, answer, setAnswer }) {
+  if (step.questionType === 'multiple_choice') {
+    const options = step.questionOptions ? JSON.parse(step.questionOptions) : [];
+    return (
+      <Radio.Group label={step.questionPrompt} value={answer} onChange={setAnswer}>
+        <Stack gap="xs" mt="xs">
+          {options.map((opt) => (
+            <Radio key={opt} value={opt} label={opt} />
+          ))}
+        </Stack>
+      </Radio.Group>
+    );
+  }
+  if (step.questionType === 'confirm') {
+    return <Text c="dimmed">{step.questionPrompt || 'Confirm you completed this step.'}</Text>;
+  }
+  return (
+    <Textarea
+      label={step.questionPrompt}
+      value={answer}
+      onChange={(e) => setAnswer(e.currentTarget.value)}
+      autosize
+      minRows={4}
+    />
+  );
+}
+
+function StepAnswer({ active, answer, setAnswer, submit }) {
+  if (active.status === 'pending_review') {
+    return <Text c="dimmed">Waiting for the admin to review your answer.</Text>;
+  }
+  if (!active.step.isCheckpoint) {
+    return <Button onClick={submit}>Mark done, next step</Button>;
+  }
+  return (
+    <>
+      <CheckpointQuestion step={active.step} answer={answer} setAnswer={setAnswer} />
+      <Button onClick={submit} disabled={!canSubmitAnswer(active.step.questionType, answer)}>Submit answer</Button>
+    </>
+  );
+}
+
 export default function StepPage() {
   const { id } = useParams();
   const [rows, setRows] = useState([]);
@@ -36,12 +84,6 @@ export default function StepPage() {
     load();
   }
 
-  const options = active.step.questionOptions ? JSON.parse(active.step.questionOptions) : [];
-  const canSubmit =
-    active.step.questionType === 'text' ? answer.trim().length > 0 :
-    active.step.questionType === 'multiple_choice' ? !!answer :
-    true;
-
   return (
     <Grid>
       <Grid.Col span={{ base: 12, md: 7 }}>
@@ -50,34 +92,7 @@ export default function StepPage() {
       </Grid.Col>
       <Grid.Col span={{ base: 12, md: 5 }}>
         <Stack>
-          {active.status === 'pending_review' ? (
-            <Text c="dimmed">Waiting for the admin to review your answer.</Text>
-          ) : active.step.isCheckpoint ? (
-            <>
-              {active.step.questionType === 'multiple_choice' ? (
-                <Radio.Group label={active.step.questionPrompt} value={answer} onChange={setAnswer}>
-                  <Stack gap="xs" mt="xs">
-                    {options.map((opt) => (
-                      <Radio key={opt} value={opt} label={opt} />
-                    ))}
-                  </Stack>
-                </Radio.Group>
-              ) : active.step.questionType === 'confirm' ? (
-                <Text c="dimmed">{active.step.questionPrompt || 'Confirm you completed this step.'}</Text>
-              ) : (
-                <Textarea
-                  label={active.step.questionPrompt}
-                  value={answer}
-                  onChange={(e) => setAnswer(e.currentTarget.value)}
-                  autosize
-                  minRows={4}
-                />
-              )}
-              <Button onClick={submit} disabled={!canSubmit}>Submit answer</Button>
-            </>
-          ) : (
-            <Button onClick={submit}>Mark done, next step</Button>
-          )}
+          <StepAnswer active={active} answer={answer} setAnswer={setAnswer} submit={submit} />
           <Group>
             <Button
               variant="outline"
