@@ -1,4 +1,4 @@
 node_modules/
-prisma/dev.db
-prisma/test.db
+prisma/**/*.db
 .env
+coverage/
