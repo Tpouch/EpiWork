@@ -10,3 +10,7 @@ export function formatRunWindow(run) {
   const end = run.endedAt ? formatTime(run.endedAt) : 'still live';
   return `${formatDay(run.launchedAt)} · ${formatTime(run.launchedAt)} → ${end}`;
 }
+
+export function formatShortDate(date) {
+  return new Date(date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+}

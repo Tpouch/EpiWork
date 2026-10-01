@@ -1,4 +1,4 @@
-export default function WorkshopCard({ workshop, meta, onOpen }) {
+export default function WorkshopCard({ workshop, meta, onOpen, children }) {
   return (
     <button
       type="button"
@@ -15,6 +15,7 @@ export default function WorkshopCard({ workshop, meta, onOpen }) {
       <span className="font-semibold">{workshop.title}</span>
       {workshop.description && <span className="text-sm opacity-70 line-clamp-2">{workshop.description}</span>}
       <span className="text-xs opacity-60">{meta}</span>
+      {children}
     </button>
   );
 }
