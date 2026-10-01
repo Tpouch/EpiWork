@@ -7,6 +7,7 @@ const progressRoutes = require('./routes/progress');
 const { attachUser } = require('./middleware/auth');
 
 const app = express();
+app.disable('x-powered-by');
 app.use(cors());
 app.use(express.json());
 app.use(attachUser);
