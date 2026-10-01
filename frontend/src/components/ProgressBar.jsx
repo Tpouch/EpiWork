@@ -10,19 +10,17 @@ function fillPercent(done, total, finished) {
 export default function ProgressBar({ done, total, finished }) {
   return (
     <span className="mt-1 flex flex-col gap-1">
-      <span
-        role="progressbar"
+      <progress
         aria-label="Steps completed"
-        aria-valuemin={0}
-        aria-valuemax={total}
-        aria-valuenow={done}
-        className="block h-3 border-2 border-brutal-line bg-brutal-field"
-      >
-        <span
-          className={cn('block h-full', finished ? 'bg-brutal-green' : 'bg-brutal-cyan')}
-          style={{ width: `${fillPercent(done, total, finished)}%` }}
-        />
-      </span>
+        max={100}
+        value={fillPercent(done, total, finished)}
+        className={cn(
+          'block h-3 w-full appearance-none border-2 border-brutal-line bg-brutal-field [&::-webkit-progress-bar]:bg-brutal-field',
+          finished
+            ? '[&::-moz-progress-bar]:bg-brutal-green [&::-webkit-progress-value]:bg-brutal-green'
+            : '[&::-moz-progress-bar]:bg-brutal-cyan [&::-webkit-progress-value]:bg-brutal-cyan',
+        )}
+      />
       <span className="text-xs font-semibold opacity-80">
         {done} / {total} steps{finished && ' · Finished'}
       </span>
