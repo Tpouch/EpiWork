@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Button, Group, Stack, TextInput } from '@mantine/core';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../../api';
 import SectionHeader from '../../components/SectionHeader';
 import ProgressRail from '../../components/ProgressRail';
@@ -36,9 +36,9 @@ export default function AdminHome() {
     <Stack>
       <SectionHeader>Class progress</SectionHeader>
       {workshops.map((w) => (
-        <div key={w.id} onClick={() => navigate(`/workshops/${w.id}/review`)} style={{ cursor: 'pointer' }}>
+        <Link key={w.id} to={`/workshops/${w.id}/review`} style={{ display: 'block', color: 'inherit', textDecoration: 'none' }}>
           <ProgressRail workshop={w} studentsProgress={progressByWorkshop[w.id]?.students || []} />
-        </div>
+        </Link>
       ))}
 
       <Group>
