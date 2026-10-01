@@ -5,6 +5,11 @@ import { stepsSummary } from '../lib/workshopMeta';
 import { api } from '../api';
 import { cn } from '@/lib/utils';
 
+function launchLabel(launching, selected) {
+  if (launching) return 'Launching...';
+  return selected ? `Launch ${selected.title}` : 'Pick a workshop';
+}
+
 function WorkshopPicker({ onLaunched }) {
   const [workshops, setWorkshops] = useState(null);
   const [selectedId, setSelectedId] = useState(null);
@@ -57,7 +62,7 @@ function WorkshopPicker({ onLaunched }) {
       })}
       {error && <p role="alert" className="text-sm text-brutal-red">{error}</p>}
       <Button onClick={launch} disabled={!selected || launching} className="mt-2 w-full">
-        {launching ? 'Launching...' : selected ? `Launch ${selected.title}` : 'Pick a workshop'}
+        {launchLabel(launching, selected)}
       </Button>
     </div>
   );

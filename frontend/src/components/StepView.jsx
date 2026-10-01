@@ -43,6 +43,21 @@ function CheckpointQuestion({ step, answer, onAnswerChange, readOnly }) {
   );
 }
 
+function StepAction({ step, status, answer, onAnswerChange, onSubmit, readOnly }) {
+  if (status === 'pending_review') {
+    return <p className="opacity-70">Waiting for the admin to review your answer.</p>;
+  }
+  if (!step.isCheckpoint) {
+    return <Button onClick={onSubmit} disabled={readOnly}>Mark done, next step</Button>;
+  }
+  return (
+    <>
+      <CheckpointQuestion step={step} answer={answer} onAnswerChange={onAnswerChange} readOnly={readOnly} />
+      <Button onClick={onSubmit} disabled={readOnly || !canSubmitAnswer(step, answer)}>Submit answer</Button>
+    </>
+  );
+}
+
 export default function StepView({
   step,
   status,
@@ -60,16 +75,14 @@ export default function StepView({
         <p className="mt-2">{step.content}</p>
       </div>
       <div className="md:col-span-5 flex flex-col gap-4">
-        {status === 'pending_review' ? (
-          <p className="opacity-70">Waiting for the admin to review your answer.</p>
-        ) : step.isCheckpoint ? (
-          <>
-            <CheckpointQuestion step={step} answer={answer} onAnswerChange={onAnswerChange} readOnly={readOnly} />
-            <Button onClick={onSubmit} disabled={readOnly || !canSubmitAnswer(step, answer)}>Submit answer</Button>
-          </>
-        ) : (
-          <Button onClick={onSubmit} disabled={readOnly}>Mark done, next step</Button>
-        )}
+        <StepAction
+          step={step}
+          status={status}
+          answer={answer}
+          onAnswerChange={onAnswerChange}
+          onSubmit={onSubmit}
+          readOnly={readOnly}
+        />
         <div>
           <Button
             variant="neutral"
