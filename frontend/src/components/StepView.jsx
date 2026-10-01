@@ -1,3 +1,4 @@
+import { Check } from 'lucide-react';
 import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
@@ -43,49 +44,51 @@ function CheckpointQuestion({ step, answer, onAnswerChange, readOnly }) {
   );
 }
 
-export default function StepView({
-  step,
-  status,
-  helpRequested,
-  answer,
-  onAnswerChange,
-  onSubmit,
-  onRequestHelp,
-  isLastStep = false,
-  readOnly = false,
-}) {
+function StepAction({ step, status, answer, onAnswerChange, onSubmit, isLastStep, readOnly }) {
+  if (status === 'done') {
+    return (
+      <p className="flex items-center gap-2 font-semibold">
+        <Check className="size-4" aria-hidden="true" />
+        You completed this step.
+      </p>
+    );
+  }
+  if (status === 'pending_review') {
+    return (
+      <p className="border-2 border-brutal-line bg-brutal-cyan p-3 font-semibold text-brutal-dark">
+        Waiting for the admin to review your answer.
+      </p>
+    );
+  }
+  if (!step.isCheckpoint) {
+    return (
+      <Button onClick={onSubmit} disabled={readOnly} className="self-end">
+        {isLastStep ? 'Finish workshop' : 'Mark done, next step'}
+      </Button>
+    );
+  }
   return (
-    <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-      <div className="md:col-span-7">
-        <h3 className="text-xl font-heading">{step.title}</h3>
-        <p className="mt-2">{step.content}</p>
+    <>
+      <p className="text-xs font-semibold uppercase tracking-wider opacity-60">Checkpoint</p>
+      <CheckpointQuestion step={step} answer={answer} onAnswerChange={onAnswerChange} readOnly={readOnly} />
+      <Button onClick={onSubmit} disabled={readOnly || !canSubmitAnswer(step, answer)} className="self-end">
+        {isLastStep ? 'Submit and finish' : 'Submit answer'}
+      </Button>
+    </>
+  );
+}
+
+export default function StepView({ step, index, total, status, ...actionProps }) {
+  return (
+    <article className="flex min-h-64 min-w-0 flex-col gap-3 border-2 border-brutal-line bg-brutal-surface p-5 shadow-brutal">
+      <p className="text-xs font-semibold uppercase tracking-wider opacity-60">
+        Step {index + 1} of {total}
+      </p>
+      <h3 className="text-2xl font-heading">{step.title}</h3>
+      <p className="max-w-prose whitespace-pre-wrap break-words leading-relaxed">{step.content}</p>
+      <div className="mt-auto flex flex-col gap-3 border-t-2 border-brutal-line pt-4">
+        <StepAction step={step} status={status} {...actionProps} />
       </div>
-      <div className="md:col-span-5 flex flex-col gap-4">
-        {status === 'pending_review' ? (
-          <p className="opacity-70">Waiting for the admin to review your answer.</p>
-        ) : step.isCheckpoint ? (
-          <>
-            <CheckpointQuestion step={step} answer={answer} onAnswerChange={onAnswerChange} readOnly={readOnly} />
-            <Button onClick={onSubmit} disabled={readOnly || !canSubmitAnswer(step, answer)}>
-              {isLastStep ? 'Submit and finish' : 'Submit answer'}
-            </Button>
-          </>
-        ) : (
-          <Button onClick={onSubmit} disabled={readOnly}>
-            {isLastStep ? 'Finish workshop' : 'Mark done, next step'}
-          </Button>
-        )}
-        <div>
-          <Button
-            variant="neutral"
-            onClick={onRequestHelp}
-            disabled={readOnly || helpRequested}
-            className="border-brutal-orange text-brutal-ink"
-          >
-            {helpRequested ? 'Help requested' : 'I need help'}
-          </Button>
-        </div>
-      </div>
-    </div>
+    </article>
   );
 }
