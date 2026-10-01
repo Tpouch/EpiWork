@@ -1,25 +1,24 @@
-import { Paper, Stack, Text } from '@mantine/core';
+import { Card, CardContent } from './ui/card';
 import { signalColors } from '../theme';
 
 export default function PriorityFeed({ items }) {
   return (
-    <Stack gap={6}>
-      {items.length === 0 && <Text c="dimmed">Nothing needs attention right now.</Text>}
+    <div className="flex flex-col gap-1.5">
+      {items.length === 0 && <p className="opacity-70">Nothing needs attention right now.</p>}
       {items.map((item) => (
-        <Paper
+        <Card
           key={`${item.student?.id}-${item.workshopTitle}-${item.stepTitle}`}
-          p="xs"
-          style={{
-            borderLeft: `3px solid ${item.type === 'help' ? signalColors.needsHelp : signalColors.awaitingReview}`,
-            background: '#242424',
-          }}
+          className="border-l-4"
+          style={{ borderLeftColor: item.type === 'help' ? signalColors.needsHelp : signalColors.awaitingReview }}
         >
-          <Text size="sm">
-            <b>{item.student?.name}</b>{' '}
-            {item.type === 'help' ? 'needs help' : 'awaiting review'} — {item.workshopTitle}, {item.stepTitle}
-          </Text>
-        </Paper>
+          <CardContent className="py-2">
+            <p className="text-sm">
+              <b>{item.student?.name}</b>{' '}
+              {item.type === 'help' ? 'needs help' : 'awaiting review'} — {item.workshopTitle}, {item.stepTitle}
+            </p>
+          </CardContent>
+        </Card>
       ))}
-    </Stack>
+    </div>
   );
 }

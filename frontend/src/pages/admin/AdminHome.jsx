@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Button, Group, Stack, TextInput } from '@mantine/core';
+import { Button } from '../../components/ui/button';
+import { Input } from '../../components/ui/input';
 import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../../api';
 import SectionHeader from '../../components/SectionHeader';
@@ -33,27 +34,27 @@ export default function AdminHome() {
   }
 
   return (
-    <Stack>
+    <div className="flex flex-col gap-4">
       <SectionHeader>Class progress</SectionHeader>
       {workshops.map((w) => (
-        <Link key={w.id} to={`/workshops/${w.id}/review`} style={{ display: 'block', color: 'inherit', textDecoration: 'none' }}>
+        <Link key={w.id} to={`/workshops/${w.id}/review`} className="block">
           <ProgressRail workshop={w} studentsProgress={progressByWorkshop[w.id]?.students || []} />
         </Link>
       ))}
 
-      <Group>
-        <TextInput
+      <div className="flex items-center gap-2">
+        <Input
           placeholder="New workshop title"
           value={newTitle}
-          onChange={(e) => setNewTitle(e.currentTarget.value)}
+          onChange={(e) => setNewTitle(e.target.value)}
         />
         <Button onClick={createWorkshop}>New workshop</Button>
-      </Group>
+      </div>
 
-      <div style={{ marginTop: 24 }}>
+      <div className="mt-6">
         <SectionHeader>Priority_</SectionHeader>
       </div>
       <PriorityFeed items={feed} />
-    </Stack>
+    </div>
   );
 }

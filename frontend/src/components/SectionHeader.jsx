@@ -1,11 +1,10 @@
-import { Group, Title } from '@mantine/core';
 import { signalColors } from '../theme';
 
 export default function SectionHeader({ children }) {
   return (
-    <Group gap="xs" align="center">
-      <div style={{ width: 4, height: 16, background: signalColors.sectionBar, borderRadius: 2 }} />
-      <Title order={3}>{children}</Title>
-    </Group>
+    <div className="flex items-center gap-2">
+      <div className="w-1 h-4" style={{ background: signalColors.sectionBar }} />
+      <h3 className="text-xl font-heading">{children}</h3>
+    </div>
   );
 }

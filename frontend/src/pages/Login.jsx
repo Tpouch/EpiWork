@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, Stack, Text, Title } from '@mantine/core';
+import { Button } from '../components/ui/button';
 import { api, setCurrentUser } from '../api';
 
 export default function Login() {
@@ -20,17 +20,21 @@ export default function Login() {
   const students = users.filter((u) => u.role === 'student');
 
   return (
-    <Stack align="center" justify="center" mih="100vh" gap="md">
-      <Title order={1}>{'{ EPIWORK }'}</Title>
-      <Text c="dimmed">Who&apos;s logging in?</Text>
-      {admin && <Button size="md" onClick={() => pick(admin)}>I&apos;m the Admin</Button>}
-      <Stack gap="xs">
+    <div className="min-h-screen flex flex-col items-center justify-center gap-6 px-4">
+      <h1 className="text-4xl font-heading">{'{ EPIWORK }'}</h1>
+      <p className="opacity-70">Who&apos;s logging in?</p>
+      {admin && (
+        <Button size="lg" onClick={() => pick(admin)}>
+          I&apos;m the Admin
+        </Button>
+      )}
+      <div className="flex flex-col gap-2">
         {students.map((s) => (
-          <Button key={s.id} variant="outline" onClick={() => pick(s)}>
+          <Button key={s.id} variant="neutral" onClick={() => pick(s)}>
             {s.name}
           </Button>
         ))}
-      </Stack>
-    </Stack>
+      </div>
+    </div>
   );
 }
