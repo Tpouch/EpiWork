@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { ChevronLeft, ChevronRight, Eye, X } from 'lucide-react';
 import StepView from './StepView';
 
-function ignore() {}
+function ignore() {
+  // The preview is read-only: student actions do nothing.
+}
 
 export default function StudentPreview({ steps, onExit }) {
   const [index, setIndex] = useState(0);
