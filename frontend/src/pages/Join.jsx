@@ -33,7 +33,7 @@ export default function Join() {
       const { user, workshopId } = await api.join(code, email);
       setCurrentUser(user);
       // Full reload so App re-reads the stored user and picks the student routes.
-      window.location.assign(`/workshops/${workshopId}`);
+      globalThis.location.assign(`/workshops/${workshopId}`);
     } catch (err) {
       setError(err.message);
       setBusy(false);

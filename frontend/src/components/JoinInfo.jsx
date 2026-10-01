@@ -6,7 +6,7 @@ function joinedLabel(count) {
 }
 
 export default function JoinInfo({ session, onOpenLive, onEnd }) {
-  const joinUrl = `${window.location.origin}/join`;
+  const joinUrl = `${globalThis.location.origin}/join`;
   return (
     <div className="flex flex-col items-center gap-5 py-10 text-center">
       <h2 className="text-2xl font-heading">{session.icon} {session.title} is live</h2>

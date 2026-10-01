@@ -72,7 +72,7 @@ export default function Teach() {
   }
 
   async function endSession() {
-    if (!window.confirm(END_CONFIRMATION)) return;
+    if (!globalThis.confirm(END_CONFIRMATION)) return;
     try {
       await api.endWorkshop(session.workshopId);
       setView('live');
