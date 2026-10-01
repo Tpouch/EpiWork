@@ -17,8 +17,8 @@ function joined(student, minute) {
 function done(student, stepId, minute) {
   return { type: 'step_done', createdAt: at(minute), studentId: student.id, stepId, student };
 }
-function summary(events, feedback = [], window = { launchedAt, endedAt }) {
-  return summarizeRun({ steps, events, feedback, ...window });
+function summary(events, feedback = [], range = {}) {
+  return summarizeRun({ steps, events, feedback, launchedAt, endedAt, ...range });
 }
 
 describe('summarizeRun', () => {
