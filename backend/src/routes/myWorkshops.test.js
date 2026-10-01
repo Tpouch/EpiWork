@@ -59,7 +59,7 @@ describe('my workshops routes', () => {
   test('returns the recap without question fields', async () => {
     const { status, body } = await getAsMaya(`/me/workshops/${git.id}/recap`);
     expect(status).toBe(200);
-    expect(Object.keys(body.steps[0]).sort()).toEqual(['content', 'id', 'order', 'title']);
+    expect(Object.keys(body.steps[0]).sort((a, b) => a.localeCompare(b))).toEqual(['content', 'id', 'order', 'title']);
   });
 
   test('answers 404 for a workshop the student did not join', async () => {
