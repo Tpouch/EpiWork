@@ -4,6 +4,9 @@ FROM node:24-alpine
 # its native binding.
 RUN apk add --no-cache python3 make g++
 
+# Install pnpm outside root's home so the unprivileged node user can run it.
+ENV COREPACK_HOME=/usr/local/share/corepack
+
 WORKDIR /app
 
 COPY package.json pnpm-lock.yaml ./
@@ -17,6 +20,10 @@ RUN chmod +x docker-entrypoint.sh
 # be present (not reachable) for this step since it doesn't connect to a DB.
 ENV DATABASE_URL="file:./prisma/dev.db"
 RUN pnpm exec prisma generate
+
+# The SQLite volume is created from this directory, so it inherits node ownership.
+RUN mkdir -p /data && chown node:node /data && chown -R node:node $COREPACK_HOME
+USER node
 
 EXPOSE 4000
 
