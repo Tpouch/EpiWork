@@ -44,16 +44,6 @@
   --spacing-reverseBoxShadowY: -4px;
 }
 
-/* Dark theme: lib/theme.js puts the "dark" class on <html>. */
-.dark {
-  --color-brutal-bg: #3a3a41;
-  --color-brutal-surface: #46464e;
-  --color-brutal-field: #2a2a30;
-  --color-brutal-ink: #f4f2ee;
-  --color-brutal-line: #0b0b0d;
-  color-scheme: dark;
-}
-
 body {
   margin: 0;
   background-color: var(--color-brutal-bg);
@@ -142,7 +132,14 @@ h1, h2, h3, h4, h5, h6 {
   --sidebar-ring: oklch(0.708 0 0);
 }
 
+/* Dark theme: lib/theme.js puts the "dark" class on <html>. */
 .dark {
+  --color-brutal-bg: #3a3a41;
+  --color-brutal-surface: #46464e;
+  --color-brutal-field: #2a2a30;
+  --color-brutal-ink: #f4f2ee;
+  --color-brutal-line: #0b0b0d;
+  color-scheme: dark;
   --background: var(--color-brutal-surface);
   --foreground: var(--color-brutal-ink);
   --card: oklch(0.205 0 0);
