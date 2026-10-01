@@ -6,6 +6,7 @@ import Login from './pages/Login';
 import Account from './pages/Account';
 import AppShell from './components/AppShell';
 import StudentHome from './pages/student/StudentHome';
+import MyWorkshops from './pages/student/MyWorkshops';
 import StepPage from './pages/student/StepPage';
 import AdminHome from './pages/admin/AdminHome';
 import WorkshopEditor from './pages/admin/WorkshopEditor';
@@ -55,6 +56,7 @@ export default function App() {
                 ) : (
                   <>
                     <Route path="/" element={<StudentHome />} />
+                    <Route path="/my-workshops" element={<MyWorkshops />} />
                     <Route path="/workshops/:id" element={<StepPage />} />
                   </>
                 )}
