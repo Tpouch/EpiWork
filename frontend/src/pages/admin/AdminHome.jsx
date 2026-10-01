@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../../api';
 import SectionHeader from '../../components/SectionHeader';
 import ProgressRail from '../../components/ProgressRail';
@@ -37,9 +37,9 @@ export default function AdminHome() {
     <div className="flex flex-col gap-4">
       <SectionHeader>Class progress</SectionHeader>
       {workshops.map((w) => (
-        <div key={w.id} onClick={() => navigate(`/workshops/${w.id}/review`)} className="cursor-pointer">
+        <Link key={w.id} to={`/workshops/${w.id}/review`} className="block">
           <ProgressRail workshop={w} studentsProgress={progressByWorkshop[w.id]?.students || []} />
-        </div>
+        </Link>
       ))}
 
       <div className="flex items-center gap-2">
