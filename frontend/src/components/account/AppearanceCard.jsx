@@ -24,7 +24,7 @@ export default function AppearanceCard({ user, onSaved }) {
       <CardContent className="flex flex-col gap-3">
         <h3 className="text-xl">Appearance</h3>
         <p id="accent-help" className="text-xs opacity-70">Accent color (buttons, active menu, highlights)</p>
-        <div role="group" aria-labelledby="accent-help" className="flex flex-wrap gap-3">
+        <fieldset aria-labelledby="accent-help" className="flex flex-wrap gap-3">
           {ACCENTS.map((accent) => {
             const selected = (user.accentColor ?? 'lime') === accent.name;
             return (
@@ -46,13 +46,13 @@ export default function AppearanceCard({ user, onSaved }) {
               </div>
             );
           })}
-        </div>
+        </fieldset>
         {error && <p role="alert" className="text-sm text-brutal-red">{error}</p>}
         {saved && (
-          <span role="status" className="flex w-fit items-center gap-1 border-2 border-brutal-ink bg-brutal-green px-2 py-1 text-xs font-semibold">
+          <output className="flex w-fit items-center gap-1 border-2 border-brutal-ink bg-brutal-green px-2 py-1 text-xs font-semibold">
             <Check className="size-3" aria-hidden="true" />
             Saved
-          </span>
+          </output>
         )}
       </CardContent>
     </Card>
