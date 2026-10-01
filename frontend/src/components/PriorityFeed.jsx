@@ -5,9 +5,9 @@ export default function PriorityFeed({ items }) {
   return (
     <Stack gap={6}>
       {items.length === 0 && <Text c="dimmed">Nothing needs attention right now.</Text>}
-      {items.map((item, i) => (
+      {items.map((item) => (
         <Paper
-          key={i}
+          key={`${item.student?.id}-${item.workshopTitle}-${item.stepTitle}`}
           p="xs"
           style={{
             borderLeft: `3px solid ${item.type === 'help' ? signalColors.needsHelp : signalColors.awaitingReview}`,

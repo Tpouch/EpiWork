@@ -21,7 +21,7 @@ async function request(path, options = {}) {
       'Content-Type': 'application/json',
       ...(user ? { 'x-user-id': String(user.id) } : {}),
     },
-    body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
+    body: options.body === undefined ? undefined : JSON.stringify(options.body),
   });
   if (!res.ok) {
     const text = await res.text();
