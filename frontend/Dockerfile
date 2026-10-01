@@ -10,10 +10,9 @@ RUN corepack enable && corepack prepare pnpm@10.30.1 --activate && \
     pnpm install --frozen-lockfile
 
 COPY . .
-RUN pnpm build
-
 # vite preview bundles vite.config.js into node_modules/.vite-temp at startup.
-RUN mkdir -p node_modules/.vite-temp && chown node:node node_modules/.vite-temp && \
+RUN pnpm build && \
+    mkdir -p node_modules/.vite-temp && chown node:node node_modules/.vite-temp && \
     chown -R node:node $COREPACK_HOME
 USER node
 

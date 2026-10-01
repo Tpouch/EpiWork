@@ -18,11 +18,10 @@ RUN chmod +x docker-entrypoint.sh
 
 # Prisma 7 needs the client generated explicitly; DATABASE_URL only needs to
 # be present (not reachable) for this step since it doesn't connect to a DB.
+# The SQLite volume is created from /data, so it inherits node ownership.
 ENV DATABASE_URL="file:./prisma/dev.db"
-RUN pnpm exec prisma generate
-
-# The SQLite volume is created from this directory, so it inherits node ownership.
-RUN mkdir -p /data && chown node:node /data && chown -R node:node $COREPACK_HOME
+RUN pnpm exec prisma generate && \
+    mkdir -p /data && chown node:node /data && chown -R node:node $COREPACK_HOME
 USER node
 
 EXPOSE 4000
