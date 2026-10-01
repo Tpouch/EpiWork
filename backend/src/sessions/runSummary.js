@@ -11,14 +11,14 @@ function joinedStudents(events, launchedAt, endedAt) {
   return [...students.values()];
 }
 
-// Progress carries over between runs, so steps done before this run's launch count too.
-function reachedStep(steps, events, studentId, endedAt) {
+// Joining a new run starts the workshop over, so only steps done inside this run count.
+function reachedStep(steps, events, studentId, launchedAt, endedAt) {
   if (steps.length === 0) return { finished: false, number: null, title: null };
   const positions = new Map(steps.map((step, index) => [step.id, index]));
   let highest = -1;
   for (const event of events) {
     if (event.type !== 'step_done' || event.studentId !== studentId) continue;
-    if (endedAt && event.createdAt > endedAt) continue;
+    if (!inWindow(event.createdAt, launchedAt, endedAt)) continue;
     highest = Math.max(highest, positions.get(event.stepId) ?? -1);
   }
   const last = steps.length - 1;
@@ -37,7 +37,7 @@ function summarizeRun({ steps, events, feedback, launchedAt, endedAt }) {
   const students = joinedStudents(events, launchedAt, endedAt).map((student) => ({
     id: student.id,
     name: student.name,
-    reached: reachedStep(steps, events, student.id, endedAt),
+    reached: reachedStep(steps, events, student.id, launchedAt, endedAt),
     rating: ratings.get(student.id) ?? null,
   }));
   return {
