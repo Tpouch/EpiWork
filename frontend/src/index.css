@@ -8,7 +8,7 @@
   --color-brutal-bg: #fffcf5;
   --color-brutal-ink: #171717;
 
-  --color-brutal-lime: #b7ff4c;
+  --color-brutal-accent: #b7ff4c;
   --color-brutal-blue: #2f6fef;
 
   --color-brutal-orange: #ff5f3a;
@@ -26,7 +26,7 @@
   --font-sans: "IBM Plex Sans", sans-serif;
   --font-heading: "Anton", sans-serif;
 
-  --color-main: var(--color-brutal-lime);
+  --color-main: var(--color-brutal-accent);
   --color-main-foreground: var(--color-brutal-ink);
   --color-secondary-background: var(--color-brutal-bg);
   --color-border: var(--color-brutal-ink);

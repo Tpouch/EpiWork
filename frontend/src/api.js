@@ -75,6 +75,11 @@ export const api = {
     saveSession({ ...readSession(), user });
     return user;
   },
+  updateAppearance: async (accentColor) => {
+    const user = await request('/me/appearance', { method: 'PATCH', body: { accentColor } });
+    saveSession({ ...readSession(), user });
+    return user;
+  },
   changePassword: (currentPassword, newPassword) =>
     request('/me/password', { method: 'POST', body: { currentPassword, newPassword } }),
   listAccounts: () => request('/accounts'),

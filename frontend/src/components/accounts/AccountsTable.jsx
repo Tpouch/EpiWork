@@ -21,7 +21,7 @@ export default function AccountsTable({ accounts, meId, onReset, onDelete }) {
             <tr key={account.id} className="border-b border-brutal-ink/20 last:border-b-0">
               <td className="p-3 font-semibold">
                 {account.name}
-                {account.id === meId && <Badge className="ml-2 bg-brutal-lime font-semibold uppercase">You</Badge>}
+                {account.id === meId && <Badge className="ml-2 bg-brutal-accent font-semibold uppercase">You</Badge>}
                 {account.isProtected && (
                   <Badge className="ml-2 bg-brutal-bg font-semibold uppercase">
                     <Lock aria-hidden="true" />

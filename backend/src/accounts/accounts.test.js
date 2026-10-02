@@ -45,7 +45,7 @@ describe('accounts: authentication', () => {
 
   test('signup creates a student and returns a working token', async () => {
     const { token, user } = await signup(prisma, { email: 'lea.martin@epitech.eu', password: 'longenough' });
-    expect(user).toEqual({ id: expect.any(Number), name: 'Lea Martin', email: 'lea.martin@epitech.eu', role: 'student', isProtected: false });
+    expect(user).toEqual({ id: expect.any(Number), name: 'Lea Martin', email: 'lea.martin@epitech.eu', role: 'student', accentColor: 'lime', isProtected: false });
     expect((await findSessionByToken(prisma, token)).user).toEqual(user);
   });
 
@@ -78,6 +78,13 @@ describe('accounts: authentication', () => {
     expect(token).toMatch(/^[0-9a-f]{64}$/);
   });
 
+  test('login returns the saved accent color', async () => {
+    const alice = await createUser();
+    await prisma.user.update({ where: { id: alice.id }, data: { accentColor: 'pink' } });
+    const { user } = await login(prisma, { email: 'alice.martin@epitech.eu', password: 'student123' });
+    expect(user.accentColor).toBe('pink');
+  });
+
   test('login accepts the email with different case and spaces', async () => {
     await createUser();
     await expect(login(prisma, { email: ' Alice.Martin@EPITECH.eu ', password: 'student123' })).resolves.toHaveProperty('token');
@@ -108,7 +115,7 @@ describe('accounts: authentication', () => {
     await createUser();
     const { token } = await login(prisma, { email: 'alice.martin@epitech.eu', password: 'student123' });
     const session = await findSessionByToken(prisma, token);
-    expect(Object.keys(session.user).sort((a, b) => a.localeCompare(b))).toEqual(['email', 'id', 'isProtected', 'name', 'role']);
+    expect(Object.keys(session.user).sort((a, b) => a.localeCompare(b))).toEqual(['accentColor', 'email', 'id', 'isProtected', 'name', 'role']);
   });
 
   test('findSessionByToken returns null for an unknown token', async () => {
