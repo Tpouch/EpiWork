@@ -1,56 +1,91 @@
-import { Card, CardContent } from './ui/card';
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from './ui/tooltip';
-import { signalColors } from '../theme';
+import { cn } from '@/lib/utils';
 
-const STATUS_COLOR = {
-  done: signalColors.done,
-  pending_review: signalColors.awaitingReview,
-  available: '#171717',
-  locked: '#8a8a8a',
-  unlocked: signalColors.done,
+const STATUS_STYLES = {
+  done: { className: 'bg-brutal-green text-brutal-ink', label: 'done with step' },
+  pending_review: { className: 'bg-brutal-cyan text-brutal-ink', label: 'awaiting review' },
+  available: { className: 'bg-brutal-ink text-brutal-bg', label: 'in progress' },
+  locked: { className: 'bg-neutral-300 text-brutal-ink', label: 'not started' },
 };
+const HELP_STYLE = { className: 'bg-brutal-orange text-brutal-ink', label: 'needs help' };
+const LEGEND = [STATUS_STYLES.available, STATUS_STYLES.pending_review, HELP_STYLE, STATUS_STYLES.done];
 
-function dotColor(row) {
-  if (row.helpRequested) return signalColors.needsHelp;
-  return STATUS_COLOR[row.status] || '#8a8a8a';
+function initials(name) {
+  const words = name.trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return '?';
+  if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
+  return (words[0][0] + words[words.length - 1][0]).toUpperCase();
+}
+
+function currentPosition(progress) {
+  const index = progress.findIndex((row) => row.status !== 'done');
+  const stepIndex = index === -1 ? progress.length - 1 : index;
+  return { stepIndex, row: progress[stepIndex] };
+}
+
+function styleFor(row) {
+  return row.helpRequested ? HELP_STYLE : STATUS_STYLES[row.status] ?? STATUS_STYLES.locked;
+}
+
+function StudentDot({ student, stepIndex, row }) {
+  const style = styleFor(row);
+  const description = `${student.name} — step ${stepIndex + 1}, ${style.label}`;
+  return (
+    <Tooltip>
+      <TooltipTrigger
+        render={
+          <button
+            type="button"
+            aria-label={description}
+            className={cn('size-10 shrink-0 rounded-full border-3 border-brutal-ink text-xs font-bold', style.className)}
+          >
+            {initials(student.name)}
+          </button>
+        }
+      />
+      <TooltipContent>{description}</TooltipContent>
+    </Tooltip>
+  );
 }
 
 export default function ProgressRail({ workshop, studentsProgress }) {
-  const totalSteps = workshop.steps.length;
+  const columns = workshop.steps.map(() => []);
+  for (const { student, progress } of studentsProgress) {
+    const { stepIndex, row } = currentPosition(progress);
+    if (row) columns[stepIndex]?.push({ student, stepIndex, row });
+  }
+
   return (
-    <Card className="mb-3">
-      <CardContent>
-        <div className="flex items-center justify-between mb-2">
-          <p className="font-semibold">{workshop.title}</p>
-          <p className="text-xs font-mono opacity-70">
-            {studentsProgress.length} students · step 1-{totalSteps}
-          </p>
+    <TooltipProvider>
+      <div className="flex flex-col gap-3">
+        <div className="overflow-x-auto border-3 border-brutal-ink bg-white">
+          <div className="flex min-w-full">
+            {workshop.steps.map((step, index) => (
+              <div
+                key={step.id}
+                className="flex min-w-14 flex-1 flex-col border-r-2 border-dashed border-brutal-ink/20 last:border-r-0"
+              >
+                <div className="flex min-h-20 flex-1 flex-wrap content-center items-center justify-center gap-1.5 p-2">
+                  {columns[index].map((dot) => (
+                    <StudentDot key={dot.student.id} {...dot} />
+                  ))}
+                </div>
+                <span className="border-t-2 border-brutal-ink py-1 text-center text-xs opacity-70" title={step.title}>
+                  {index + 1}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
-        <div className="relative h-5 bg-brutal-bg border-2 border-brutal-ink">
-          <TooltipProvider>
-            {studentsProgress.map(({ student, progress }) => {
-              const currentIndex = progress.findIndex((r) => r.status !== 'done');
-              const stepIndex = currentIndex === -1 ? totalSteps - 1 : currentIndex;
-              const left = totalSteps > 1 ? (stepIndex / (totalSteps - 1)) * 100 : 50;
-              const row = progress[stepIndex];
-              if (!row) return null;
-              return (
-                <Tooltip key={student.id}>
-                  <TooltipTrigger
-                    render={
-                      <div
-                        className="absolute top-[3px] w-3.5 h-3.5 rounded-full border-2 border-brutal-ink -translate-x-1/2"
-                        style={{ left: `${left}%`, background: dotColor(row) }}
-                      />
-                    }
-                  />
-                  <TooltipContent>{`${student.name} — step ${stepIndex + 1}`}</TooltipContent>
-                </Tooltip>
-              );
-            })}
-          </TooltipProvider>
-        </div>
-      </CardContent>
-    </Card>
+        <ul aria-label="Legend" className="flex flex-wrap gap-4 text-xs">
+          {LEGEND.map((item) => (
+            <li key={item.label} className="flex items-center gap-1.5">
+              <span className={cn('size-3 rounded-full border-2 border-brutal-ink', item.className)} aria-hidden="true" />
+              {item.label}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </TooltipProvider>
   );
 }

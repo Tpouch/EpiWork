@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Card, CardContent } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -7,6 +7,7 @@ import { Label } from '../../components/ui/label';
 import { Textarea } from '../../components/ui/textarea';
 import { Checkbox } from '../../components/ui/checkbox';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../../components/ui/select';
+import WorkshopInfoForm from '../../components/WorkshopInfoForm';
 import { api } from '../../api';
 
 const EMPTY_STEP = { title: '', content: '', isCheckpoint: false, questionType: '', questionPrompt: '', questionOptions: '' };
@@ -21,6 +22,7 @@ const QUESTION_TYPE_ITEMS = Object.fromEntries(QUESTION_TYPES.map((o) => [o.valu
 
 export default function WorkshopEditor() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [workshop, setWorkshop] = useState(null);
   const [form, setForm] = useState(EMPTY_STEP);
 
@@ -51,6 +53,11 @@ export default function WorkshopEditor() {
     load();
   }
 
+  async function saveDetails(details) {
+    await api.updateWorkshop(id, details);
+    await load();
+  }
+
   async function removeStep(stepId) {
     await api.deleteStep(stepId);
     load();
@@ -60,7 +67,14 @@ export default function WorkshopEditor() {
 
   return (
     <div className="flex flex-col gap-4">
-      <h2 className="text-2xl font-heading">{workshop.title}</h2>
+      <div className="flex items-center justify-between gap-3">
+        <Link to={`/workshops/${id}`} className="text-sm underline underline-offset-2">
+          ‹ Back to {workshop.title}
+        </Link>
+        <Button onClick={() => navigate(`/workshops/${id}`)}>Done</Button>
+      </div>
+      <WorkshopInfoForm workshop={workshop} onSave={saveDetails} />
+      <h3 className="mt-2 text-xl font-heading">Steps</h3>
       <div className="flex flex-col gap-2">
         {workshop.steps.map((s) => (
           <Card key={s.id}>

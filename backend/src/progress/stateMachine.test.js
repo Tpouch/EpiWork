@@ -2,6 +2,7 @@ const prisma = require('../db');
 const { ensureProgress, submitAnswer, unlockStep, toggleHelp } = require('./stateMachine');
 
 async function resetDb() {
+  await prisma.participation.deleteMany();
   await prisma.stepProgress.deleteMany();
   await prisma.step.deleteMany();
   await prisma.workshop.deleteMany();

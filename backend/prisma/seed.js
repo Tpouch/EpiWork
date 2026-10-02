@@ -1,6 +1,7 @@
 const prisma = require('../src/db');
 
 async function main() {
+  await prisma.participation.deleteMany();
   await prisma.stepProgress.deleteMany();
   await prisma.step.deleteMany();
   await prisma.workshop.deleteMany();

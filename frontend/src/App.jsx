@@ -1,12 +1,16 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { currentUser } from './api';
 import Login from './pages/Login';
+import Join from './pages/Join';
 import AppShell from './components/AppShell';
 import WorkshopList from './pages/student/WorkshopList';
 import StepPage from './pages/student/StepPage';
 import AdminHome from './pages/admin/AdminHome';
 import WorkshopEditor from './pages/admin/WorkshopEditor';
 import WorkshopReview from './pages/admin/WorkshopReview';
+import Workshops from './pages/admin/Workshops';
+import WorkshopDetail from './pages/admin/WorkshopDetail';
+import Teach from './pages/admin/Teach';
 
 function RequireUser({ children }) {
   const user = currentUser();
@@ -19,6 +23,7 @@ export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      <Route path="/join" element={<Join />} />
       <Route
         path="/*"
         element={
@@ -28,6 +33,9 @@ export default function App() {
                 {user?.role === 'admin' ? (
                   <>
                     <Route path="/" element={<AdminHome />} />
+                    <Route path="/workshops" element={<Workshops />} />
+                    <Route path="/workshops/:id" element={<WorkshopDetail />} />
+                    <Route path="/teach" element={<Teach />} />
                     <Route path="/workshops/:id/edit" element={<WorkshopEditor />} />
                     <Route path="/workshops/:id/review" element={<WorkshopReview />} />
                   </>
