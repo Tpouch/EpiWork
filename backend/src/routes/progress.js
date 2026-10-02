@@ -2,6 +2,7 @@ const express = require('express');
 const prisma = require('../db');
 const { requireAdmin, requireUser } = require('../middleware/auth');
 const { ensureProgress, submitAnswer, unlockStep, toggleHelp } = require('../progress/stateMachine');
+const { PUBLIC_FIELDS } = require('../accounts/accounts');
 const router = express.Router();
 
 router.get('/me/workshops/:id', requireUser, async (req, res) => {
@@ -40,7 +41,7 @@ router.post('/steps/:id/resolve-help', requireAdmin, async (req, res) => {
 
 router.get('/workshops/:id/progress', requireAdmin, async (req, res) => {
   const workshopId = Number(req.params.id);
-  const students = await prisma.user.findMany({ where: { role: 'student' } });
+  const students = await prisma.user.findMany({ where: { role: 'student' }, select: PUBLIC_FIELDS });
   const steps = await prisma.step.findMany({ where: { workshopId }, orderBy: { order: 'asc' } });
   const data = await Promise.all(
     students.map(async (student) => ({
@@ -57,7 +58,7 @@ router.get('/admin/feed', requireAdmin, async (req, res) => {
     include: { step: { include: { workshop: true } } },
     orderBy: { updatedAt: 'desc' },
   });
-  const students = await prisma.user.findMany({ where: { role: 'student' } });
+  const students = await prisma.user.findMany({ where: { role: 'student' }, select: PUBLIC_FIELDS });
   const byId = Object.fromEntries(students.map((s) => [s.id, s]));
   const feed = rows.map((row) => ({
     student: byId[row.studentId],

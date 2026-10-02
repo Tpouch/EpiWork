@@ -1,12 +1,13 @@
-import { NavLink, useNavigate } from 'react-router-dom';
-import { House, LayoutGrid, LogOut, Play } from 'lucide-react';
-import { setCurrentUser } from '../api';
+import { NavLink } from 'react-router-dom';
+import { House, LayoutGrid, LogOut, Play, Users } from 'lucide-react';
+import { api } from '../api';
 import { cn } from '@/lib/utils';
 
 const ADMIN_NAV = [
   { to: '/', label: 'Home', icon: House, end: true },
   { to: '/workshops', label: 'Workshops', icon: LayoutGrid },
   { to: '/teach', label: 'Teach', icon: Play },
+  { to: '/accounts', label: 'Accounts', icon: Users },
 ];
 
 const STUDENT_NAV = [{ to: '/', label: 'Workshops', icon: LayoutGrid, end: true }];
@@ -18,21 +19,25 @@ function navItemClass({ isActive }) {
   );
 }
 
-export default function AppShell({ user, children }) {
-  const navigate = useNavigate();
-  const items = user?.role === 'admin' ? ADMIN_NAV : STUDENT_NAV;
+async function logout() {
+  await api.logout();
+  globalThis.location.assign('/login');
+}
 
-  function logout() {
-    setCurrentUser(null);
-    navigate('/login');
-  }
+export default function AppShell({ user, children }) {
+  const items = user?.role === 'admin' ? ADMIN_NAV : STUDENT_NAV;
 
   return (
     <div className="min-h-screen flex flex-col">
       <header className="h-14 flex items-center justify-between px-4 border-b-2 border-brutal-ink bg-brutal-bg">
         <h1 className="text-lg font-heading">{'{ EPIWORK }'}</h1>
         <div className="flex items-center gap-4">
-          <span className="text-sm uppercase tracking-wide">{user?.name}</span>
+          <NavLink
+            to="/account"
+            className="border-2 border-brutal-ink bg-brutal-lime px-2 py-1 text-sm font-semibold uppercase tracking-wide shadow-brutal-sm"
+          >
+            {user?.name}
+          </NavLink>
           <button
             type="button"
             onClick={logout}
