@@ -19,12 +19,12 @@ function StepList({ steps }) {
   return (
     <ol className="flex flex-col gap-2">
       {steps.map((step, index) => (
-        <li key={step.id} className="flex items-center justify-between gap-3 border-2 border-brutal-ink bg-white px-3 py-2">
+        <li key={step.id} className="flex items-center justify-between gap-3 border-2 border-brutal-line bg-brutal-surface px-3 py-2">
           <div>
             <p className="font-semibold">{index + 1}. {step.title}</p>
             <p className="text-sm opacity-60">{stepSummary(step)}</p>
           </div>
-          {step.isCheckpoint && <Badge className="bg-brutal-cyan">Checkpoint</Badge>}
+          {step.isCheckpoint && <Badge className="bg-brutal-cyan text-brutal-dark">Checkpoint</Badge>}
         </li>
       ))}
     </ol>

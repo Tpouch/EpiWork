@@ -6,10 +6,10 @@ import RoleBadge from './RoleBadge';
 
 export default function AccountsTable({ accounts, meId, onReset, onDelete }) {
   return (
-    <div className="overflow-x-auto border-2 border-brutal-ink shadow-brutal">
+    <div className="overflow-x-auto border-2 border-brutal-line shadow-brutal">
       <table className="w-full min-w-[640px] border-collapse text-sm">
         <thead>
-          <tr className="border-b-2 border-brutal-ink text-left text-xs uppercase tracking-wide">
+          <tr className="border-b-2 border-brutal-line text-left text-xs uppercase tracking-wide">
             <th scope="col" className="p-3">Name</th>
             <th scope="col" className="p-3">Email</th>
             <th scope="col" className="p-3">Role</th>
@@ -18,10 +18,10 @@ export default function AccountsTable({ accounts, meId, onReset, onDelete }) {
         </thead>
         <tbody>
           {accounts.map((account) => (
-            <tr key={account.id} className="border-b border-brutal-ink/20 last:border-b-0">
+            <tr key={account.id} className="border-b border-brutal-line/20 last:border-b-0">
               <td className="p-3 font-semibold">
                 {account.name}
-                {account.id === meId && <Badge className="ml-2 bg-brutal-accent font-semibold uppercase">You</Badge>}
+                {account.id === meId && <Badge className="ml-2 bg-brutal-accent font-semibold uppercase text-brutal-dark">You</Badge>}
                 {account.isProtected && (
                   <Badge className="ml-2 bg-brutal-bg font-semibold uppercase">
                     <Lock aria-hidden="true" />

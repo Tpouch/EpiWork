@@ -6,7 +6,12 @@
 
 @theme {
   --color-brutal-bg: #fffcf5;
+  --color-brutal-surface: #ffffff;
+  --color-brutal-field: #fffcf5;
   --color-brutal-ink: #171717;
+  --color-brutal-line: #171717;
+  /* Never flips with the theme: text on colored surfaces, modal backdrop. */
+  --color-brutal-dark: #171717;
 
   --color-brutal-accent: #b7ff4c;
   --color-brutal-blue: #2f6fef;
@@ -17,9 +22,9 @@
   --color-brutal-pink: #ff1ef7;
   --color-brutal-red: #ef4b4b;
 
-  --shadow-brutal-sm: 2px 2px 0px #171717;
-  --shadow-brutal: 4px 4px 0px #171717;
-  --shadow-brutal-lg: 6px 6px 0px #171717;
+  --shadow-brutal-sm: 2px 2px 0px var(--color-brutal-line);
+  --shadow-brutal: 4px 4px 0px var(--color-brutal-line);
+  --shadow-brutal-lg: 6px 6px 0px var(--color-brutal-line);
 
   --radius-brutal: 0px;
 
@@ -27,9 +32,9 @@
   --font-heading: "Anton", sans-serif;
 
   --color-main: var(--color-brutal-accent);
-  --color-main-foreground: var(--color-brutal-ink);
-  --color-secondary-background: var(--color-brutal-bg);
-  --color-border: var(--color-brutal-ink);
+  --color-main-foreground: var(--color-brutal-dark);
+  --color-secondary-background: var(--color-brutal-field);
+  --color-border: var(--color-brutal-line);
   --shadow-shadow: var(--shadow-brutal);
   --radius-base: var(--radius-brutal);
   --font-weight-base: 500;
@@ -67,7 +72,7 @@ h1, h2, h3, h4, h5, h6 {
   --color-chart-1: var(--chart-1);
   --color-ring: var(--ring);
   --color-input: var(--input);
-  --color-border: var(--color-brutal-ink);
+  --color-border: var(--color-brutal-line);
   --color-destructive: var(--destructive);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
@@ -127,9 +132,16 @@ h1, h2, h3, h4, h5, h6 {
   --sidebar-ring: oklch(0.708 0 0);
 }
 
+/* Dark theme: lib/theme.js puts the "dark" class on <html>. */
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
+  --color-brutal-bg: #3a3a41;
+  --color-brutal-surface: #46464e;
+  --color-brutal-field: #2a2a30;
+  --color-brutal-ink: #f4f2ee;
+  --color-brutal-line: #0b0b0d;
+  color-scheme: dark;
+  --background: var(--color-brutal-surface);
+  --foreground: var(--color-brutal-ink);
   --card: oklch(0.205 0 0);
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.205 0 0);

@@ -47,7 +47,7 @@ export default function WorkshopReview() {
                   <div className="flex items-center gap-2">
                     {row.status === 'pending_review' && (
                       <>
-                        <Badge className="bg-brutal-cyan">{row.submittedAnswer || 'confirmed'}</Badge>
+                        <Badge className="bg-brutal-cyan text-brutal-dark">{row.submittedAnswer || 'confirmed'}</Badge>
                         <Button size="sm" onClick={() => unlock(row.stepId, student.id)}>Unlock</Button>
                       </>
                     )}
@@ -55,7 +55,7 @@ export default function WorkshopReview() {
                       <Button
                         size="sm"
                         onClick={() => resolveHelp(row.stepId, student.id)}
-                        className="bg-brutal-orange"
+                        className="bg-brutal-orange text-brutal-dark"
                       >
                         Resolve help
                       </Button>

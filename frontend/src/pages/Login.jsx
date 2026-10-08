@@ -17,7 +17,7 @@ export default function Login() {
 
   return (
     <div className="flex min-h-dvh flex-col md:flex-row">
-      <aside className="flex flex-col justify-between gap-6 border-b-2 border-brutal-ink bg-brutal-accent p-6 md:w-1/2 md:border-b-0 md:border-r-2 md:p-12">
+      <aside className="flex flex-col justify-between gap-6 border-b-2 border-brutal-line bg-brutal-accent p-6 text-brutal-dark md:w-1/2 md:border-b-0 md:border-r-2 md:p-12">
         <h1 className="text-5xl leading-none md:text-7xl">
           {'{ EPI'}
           <br />
