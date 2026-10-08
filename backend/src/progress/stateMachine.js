@@ -1,3 +1,9 @@
+const { recordEvent } = require('../sessions/sessionEvents');
+
+function recordStepEvent(prisma, step, studentId, type, answer = null) {
+  return recordEvent(prisma, { workshopId: step.workshopId, studentId, stepId: step.id, type, answer });
+}
+
 async function ensureProgress(prisma, workshopId, studentId) {
   const steps = await prisma.step.findMany({ where: { workshopId }, orderBy: { order: 'asc' } });
   for (let i = 0; i < steps.length; i++) {
@@ -16,13 +22,13 @@ async function ensureProgress(prisma, workshopId, studentId) {
   });
 }
 
-async function completeStep(prisma, progressId, step) {
-  await prisma.stepProgress.update({ where: { id: progressId }, data: { status: 'done' } });
+async function completeStep(prisma, progress, step, answer = null) {
+  await prisma.stepProgress.update({ where: { id: progress.id }, data: { status: 'done' } });
+  await recordStepEvent(prisma, step, progress.studentId, 'step_done', answer);
   const nextStep = await prisma.step.findFirst({
     where: { workshopId: step.workshopId, order: step.order + 1 },
   });
   if (nextStep) {
-    const progress = await prisma.stepProgress.findFirst({ where: { id: progressId } });
     const nextProgress = await prisma.stepProgress.findFirst({
       where: { stepId: nextStep.id, studentId: progress.studentId },
     });
@@ -34,7 +40,7 @@ async function completeStep(prisma, progressId, step) {
       });
     }
   }
-  return prisma.stepProgress.findUnique({ where: { id: progressId } });
+  return prisma.stepProgress.findUnique({ where: { id: progress.id } });
 }
 
 async function submitAnswer(prisma, stepId, studentId, answer) {
@@ -43,13 +49,14 @@ async function submitAnswer(prisma, stepId, studentId, answer) {
   if (progress?.status !== 'available') {
     throw new Error('Step is not available for this student');
   }
-  if (step.isCheckpoint) {
-    return prisma.stepProgress.update({
+  return prisma.$transaction(async (tx) => {
+    if (!step.isCheckpoint) return completeStep(tx, progress, step, answer);
+    await recordStepEvent(tx, step, studentId, 'checkpoint_submitted', answer);
+    return tx.stepProgress.update({
       where: { id: progress.id },
       data: { status: 'pending_review', submittedAnswer: answer },
     });
-  }
-  return completeStep(prisma, progress.id, step);
+  });
 }
 
 async function unlockStep(prisma, stepId, studentId) {
@@ -58,13 +65,20 @@ async function unlockStep(prisma, stepId, studentId) {
     throw new Error('Step is not pending review');
   }
   const step = await prisma.step.findUnique({ where: { id: stepId } });
-  return completeStep(prisma, progress.id, step);
+  return prisma.$transaction((tx) => completeStep(tx, progress, step));
 }
 
 async function toggleHelp(prisma, stepId, studentId, helpRequested) {
   const progress = await prisma.stepProgress.findFirst({ where: { stepId, studentId } });
   if (!progress) throw new Error('No progress row for this step/student');
-  return prisma.stepProgress.update({ where: { id: progress.id }, data: { helpRequested } });
+  // A second click on "need help" must not log a second request.
+  if (progress.helpRequested === helpRequested) return progress;
+  const step = await prisma.step.findUnique({ where: { id: stepId } });
+  const [updated] = await prisma.$transaction([
+    prisma.stepProgress.update({ where: { id: progress.id }, data: { helpRequested } }),
+    recordStepEvent(prisma, step, studentId, helpRequested ? 'help_requested' : 'help_resolved'),
+  ]);
+  return updated;
 }
 
 module.exports = { ensureProgress, submitAnswer, unlockStep, toggleHelp };

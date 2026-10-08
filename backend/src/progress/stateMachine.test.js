@@ -117,4 +117,52 @@ describe('progress state machine', () => {
     expect(row.status).toBe('done');
     expect(row.helpRequested).toBe(true);
   });
+
+  async function loggedEvents() {
+    const events = await prisma.sessionEvent.findMany({ where: { studentId: student.id }, orderBy: { id: 'asc' } });
+    return events.map((e) => [e.type, e.stepId, e.answer]);
+  }
+
+  test('finishing a normal step logs step_done with the answer', async () => {
+    await ensureProgress(prisma, workshop.id, student.id);
+    await submitAnswer(prisma, stepA.id, student.id, 'B');
+    expect(await loggedEvents()).toEqual([['step_done', stepA.id, 'B']]);
+    const [row] = await prisma.sessionEvent.findMany();
+    expect(row.workshopId).toBe(workshop.id);
+  });
+
+  test('submitting a checkpoint logs checkpoint_submitted, not step_done', async () => {
+    await ensureProgress(prisma, workshop.id, student.id);
+    await submitAnswer(prisma, stepA.id, student.id, null);
+    await submitAnswer(prisma, stepB.id, student.id, 'my answer');
+    expect(await loggedEvents()).toEqual([
+      ['step_done', stepA.id, null],
+      ['checkpoint_submitted', stepB.id, 'my answer'],
+    ]);
+  });
+
+  test('approving a checkpoint logs step_done for it', async () => {
+    await ensureProgress(prisma, workshop.id, student.id);
+    await submitAnswer(prisma, stepA.id, student.id, null);
+    await submitAnswer(prisma, stepB.id, student.id, 'answer');
+    await unlockStep(prisma, stepB.id, student.id);
+    expect((await loggedEvents()).at(-1)).toEqual(['step_done', stepB.id, null]);
+  });
+
+  test('a refused submit logs nothing', async () => {
+    await ensureProgress(prisma, workshop.id, student.id);
+    await expect(submitAnswer(prisma, stepB.id, student.id, 'too early')).rejects.toThrow();
+    expect(await loggedEvents()).toEqual([]);
+  });
+
+  test('help logs help_requested once and help_resolved when cleared', async () => {
+    await ensureProgress(prisma, workshop.id, student.id);
+    await toggleHelp(prisma, stepA.id, student.id, true);
+    await toggleHelp(prisma, stepA.id, student.id, true);
+    await toggleHelp(prisma, stepA.id, student.id, false);
+    expect(await loggedEvents()).toEqual([
+      ['help_requested', stepA.id, null],
+      ['help_resolved', stepA.id, null],
+    ]);
+  });
 });
