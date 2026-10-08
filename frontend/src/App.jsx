@@ -5,7 +5,9 @@ import { applyAccent } from './lib/accent';
 import Login from './pages/Login';
 import Account from './pages/Account';
 import AppShell from './components/AppShell';
-import WorkshopList from './pages/student/WorkshopList';
+import StudentHome from './pages/student/StudentHome';
+import MyWorkshops from './pages/student/MyWorkshops';
+import WorkshopRecap from './pages/student/WorkshopRecap';
 import StepPage from './pages/student/StepPage';
 import AdminHome from './pages/admin/AdminHome';
 import WorkshopEditor from './pages/admin/WorkshopEditor';
@@ -54,7 +56,9 @@ export default function App() {
                   </>
                 ) : (
                   <>
-                    <Route path="/" element={<WorkshopList />} />
+                    <Route path="/" element={<StudentHome />} />
+                    <Route path="/my-workshops" element={<MyWorkshops />} />
+                    <Route path="/my-workshops/:id" element={<WorkshopRecap />} />
                     <Route path="/workshops/:id" element={<StepPage />} />
                   </>
                 )}

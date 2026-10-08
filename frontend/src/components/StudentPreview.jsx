@@ -45,12 +45,12 @@ export default function StudentPreview({ steps, onExit }) {
       <div className="p-6">
         <StepView
           step={step}
+          index={index}
+          total={steps.length}
           status="available"
-          helpRequested={false}
           answer=""
           onAnswerChange={ignore}
           onSubmit={ignore}
-          onRequestHelp={ignore}
           readOnly
         />
       </div>
