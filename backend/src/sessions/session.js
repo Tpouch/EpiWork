@@ -52,12 +52,16 @@ async function launchWorkshop(prisma, workshopId, generateCode = generateJoinCod
     throw new SessionError(409, 'Add at least one step before launching this workshop.');
   }
   if (!workshop.isActive) {
+    const launchedAt = new Date();
     await prisma.$transaction([
+      // Launching ends whatever was live, so its run ends now too.
+      prisma.workshopRun.updateMany({ where: { endedAt: null }, data: { endedAt: launchedAt } }),
       prisma.workshop.updateMany({ where: { isActive: true }, data: { isActive: false, joinCode: null } }),
       prisma.workshop.update({
         where: { id: workshopId },
-        data: { isActive: true, joinCode: generateCode(), launchedAt: new Date() },
+        data: { isActive: true, joinCode: generateCode(), launchedAt },
       }),
+      prisma.workshopRun.create({ data: { workshopId, launchedAt } }),
     ]);
   }
   const { active } = await getSessionOverview(prisma);
@@ -66,7 +70,10 @@ async function launchWorkshop(prisma, workshopId, generateCode = generateJoinCod
 
 async function endWorkshop(prisma, workshopId) {
   await findWorkshopOrThrow(prisma, workshopId);
-  await prisma.workshop.update({ where: { id: workshopId }, data: { isActive: false, joinCode: null } });
+  await prisma.$transaction([
+    prisma.workshop.update({ where: { id: workshopId }, data: { isActive: false, joinCode: null } }),
+    prisma.workshopRun.updateMany({ where: { workshopId, endedAt: null }, data: { endedAt: new Date() } }),
+  ]);
 }
 
 async function findActiveByCode(prisma, code) {
@@ -185,10 +192,18 @@ async function activeSessionEvents(prisma) {
     ...row,
     step: row.step && { ...row.step, number: stepNumbers.get(row.step.id) },
   }));
+  const run = await prisma.workshopRun.findFirst({ where: { workshopId: workshop.id, endedAt: null } });
+  const feedback = run
+    ? await prisma.feedback.findMany({
+        where: { runId: run.id },
+        select: { studentId: true, rating: true, comment: true, createdAt: true },
+      })
+    : [];
   return {
     launchedAt: workshop.launchedAt,
     lastStepId: workshop.steps.at(-1)?.id ?? null,
     events: markOpenEvents(events).reverse(),
+    feedback,
   };
 }
 

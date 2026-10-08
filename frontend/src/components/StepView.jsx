@@ -43,17 +43,23 @@ function CheckpointQuestion({ step, answer, onAnswerChange, readOnly }) {
   );
 }
 
-function StepAction({ step, status, answer, onAnswerChange, onSubmit, readOnly }) {
+function StepAction({ step, status, answer, onAnswerChange, onSubmit, readOnly, isLastStep }) {
   if (status === 'pending_review') {
     return <p className="opacity-70">Waiting for the admin to review your answer.</p>;
   }
   if (!step.isCheckpoint) {
-    return <Button onClick={onSubmit} disabled={readOnly}>Mark done, next step</Button>;
+    return (
+      <Button onClick={onSubmit} disabled={readOnly}>
+        {isLastStep ? 'Finish workshop' : 'Mark done, next step'}
+      </Button>
+    );
   }
   return (
     <>
       <CheckpointQuestion step={step} answer={answer} onAnswerChange={onAnswerChange} readOnly={readOnly} />
-      <Button onClick={onSubmit} disabled={readOnly || !canSubmitAnswer(step, answer)}>Submit answer</Button>
+      <Button onClick={onSubmit} disabled={readOnly || !canSubmitAnswer(step, answer)}>
+        {isLastStep ? 'Submit and finish' : 'Submit answer'}
+      </Button>
     </>
   );
 }
@@ -66,6 +72,7 @@ export default function StepView({
   onAnswerChange,
   onSubmit,
   onRequestHelp,
+  isLastStep = false,
   readOnly = false,
 }) {
   return (
@@ -82,6 +89,7 @@ export default function StepView({
           onAnswerChange={onAnswerChange}
           onSubmit={onSubmit}
           readOnly={readOnly}
+          isLastStep={isLastStep}
         />
         <div>
           <Button

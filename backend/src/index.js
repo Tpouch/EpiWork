@@ -8,6 +8,7 @@ const workshopRoutes = require('./routes/workshops');
 const stepRoutes = require('./routes/steps');
 const progressRoutes = require('./routes/progress');
 const sessionRoutes = require('./routes/session');
+const runRoutes = require('./routes/runs');
 const { attachUser } = require('./middleware/auth');
 const { ensureDefaultAdmin } = require('./accounts/accounts');
 
@@ -24,6 +25,7 @@ app.use('/api', workshopRoutes);
 app.use('/api', stepRoutes);
 app.use('/api', progressRoutes);
 app.use('/api', sessionRoutes);
+app.use('/api', runRoutes);
 
 const PORT = process.env.PORT || 4000;
 
