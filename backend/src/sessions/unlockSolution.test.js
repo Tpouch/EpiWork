@@ -34,7 +34,8 @@ describe('unlockSolutionForAll', () => {
     const { count } = await unlockSolutionForAll(prisma, step.id);
     expect(count).toBe(2);
     const rows = await prisma.stepProgress.findMany({ where: { stepId: step.id, solutionUnlocked: true } });
-    expect(rows.map((r) => r.studentId).sort()).toEqual([alice.id, bob.id].sort());
+    const byId = (a, b) => a - b;
+    expect(rows.map((r) => r.studentId).sort(byId)).toEqual([alice.id, bob.id].sort(byId));
   });
 
   it('refuses when the workshop is not live', async () => {

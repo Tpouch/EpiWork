@@ -17,17 +17,24 @@ function validateCheck(data) {
   return null;
 }
 
-// Partial update for autosave: only the keys present in the body are written.
-function checkFields(body) {
+function textFields(body) {
   const data = {};
   for (const key of TEXT_FIELDS) {
     if (key in body) data[key] = key === 'content' ? String(body[key] ?? '') : blankToNull(body[key]);
   }
+  return data;
+}
+
+function serializeOptions(value) {
+  if (!Array.isArray(value)) return null;
+  return JSON.stringify(value.map((o) => String(o).trim()).filter(Boolean));
+}
+
+// Partial update for autosave: only the keys present in the body are written.
+function checkFields(body) {
+  const data = textFields(body);
   if ('title' in data && !data.title) return { error: 'Title cannot be empty.' };
-  if ('questionOptions' in body) {
-    const options = Array.isArray(body.questionOptions) ? body.questionOptions.map((o) => String(o).trim()).filter(Boolean) : null;
-    data.questionOptions = options ? JSON.stringify(options) : null;
-  }
+  if ('questionOptions' in body) data.questionOptions = serializeOptions(body.questionOptions);
   if (!('questionType' in body)) return { data };
   if (body.questionType === null) return { data: { ...data, questionType: null, ...CLEARED_CHECK } };
   data.questionType = body.questionType;
