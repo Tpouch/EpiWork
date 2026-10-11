@@ -4,6 +4,7 @@ import { currentUser } from './api';
 import { applyAccent } from './lib/accent';
 import Login from './pages/Login';
 import Account from './pages/Account';
+import NotFound from './pages/NotFound';
 import AppShell from './components/AppShell';
 import StudentHome from './pages/student/StudentHome';
 import MyWorkshops from './pages/student/MyWorkshops';
@@ -63,6 +64,10 @@ export default function App() {
                   </>
                 )}
                 <Route path="/account" element={<Account user={user} onUserChange={setUser} />} />
+                <Route
+                  path="*"
+                  element={<NotFound homeLabel="Back to home" />}
+                />
               </Routes>
             </AppShell>
           </RequireUser>
