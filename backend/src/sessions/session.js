@@ -125,7 +125,9 @@ async function joinActiveWorkshop(prisma, { code, student }) {
 async function activeSessionProgress(prisma) {
   const workshop = await prisma.workshop.findFirst({
     where: { isActive: true },
-    include: { steps: { orderBy: { order: 'asc' } } },
+    include: {
+      steps: { orderBy: { order: 'asc' }, include: { section: { select: { id: true, title: true, order: true } } } },
+    },
   });
   if (!workshop) return null;
   const participants = await prisma.participation.findMany({
@@ -146,7 +148,7 @@ async function activeSessionProgress(prisma) {
       title: workshop.title,
       icon: workshop.icon,
       joinCode: workshop.joinCode,
-      steps: workshop.steps,
+      steps: workshop.steps.map(({ solution, questionAnswer, ...step }) => ({ ...step, hasSolution: Boolean(solution) })),
     },
     students,
   };
@@ -171,12 +173,12 @@ async function activeSessionEvents(prisma) {
       studentId: true,
       stepId: true,
       student: { select: { id: true, name: true } },
-      step: { select: { id: true, title: true } },
+      step: { select: { id: true, title: true, solution: true } },
     },
   });
-  const events = rows.map((row) => ({
+  const events = rows.map(({ step, ...row }) => ({
     ...row,
-    step: row.step && { ...row.step, number: stepNumbers.get(row.step.id) },
+    step: step && { id: step.id, title: step.title, hasSolution: Boolean(step.solution), number: stepNumbers.get(step.id) },
   }));
   const run = await prisma.workshopRun.findFirst({ where: { workshopId: workshop.id, endedAt: null } });
   const feedback = run
@@ -193,6 +195,24 @@ async function activeSessionEvents(prisma) {
   };
 }
 
+async function unlockSolutionForAll(prisma, stepId) {
+  const step = await prisma.step.findUnique({ where: { id: stepId }, include: { workshop: true } });
+  if (!step) throw new SessionError(404, 'Step not found.');
+  if (!step.workshop.isActive) throw new SessionError(409, 'This workshop is not live.');
+  if (!step.solution) throw new SessionError(409, 'This step has no solution.');
+  const participants = await prisma.participation.findMany({
+    where: currentParticipantsWhere(step.workshop),
+    select: { studentId: true },
+  });
+  const studentIds = participants.map((p) => p.studentId);
+  for (const studentId of studentIds) await ensureProgress(prisma, step.workshopId, studentId);
+  const { count } = await prisma.stepProgress.updateMany({
+    where: { stepId, studentId: { in: studentIds } },
+    data: { solutionUnlocked: true },
+  });
+  return { count };
+}
+
 module.exports = {
   SessionError,
   getSessionOverview,
@@ -202,4 +222,5 @@ module.exports = {
   joinActiveWorkshop,
   activeSessionProgress,
   activeSessionEvents,
+  unlockSolutionForAll,
 };

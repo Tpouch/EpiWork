@@ -3,7 +3,7 @@ function plural(count, word) {
 }
 
 export function stepsSummary(workshop) {
-  const checkpoints = workshop.steps.filter((step) => step.isCheckpoint).length;
+  const checkpoints = workshop.steps.filter((step) => step.questionType === 'checkpoint').length;
   return `${plural(workshop.steps.length, 'step')} · ${plural(checkpoints, 'checkpoint')}`;
 }
 

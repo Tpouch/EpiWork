@@ -12,7 +12,7 @@ import { api } from '../../api';
 const REFRESH_MS = 4000;
 const END_CONFIRMATION = 'End this session? Students will no longer be able to join with this code.';
 
-function LiveSession({ session, progress, activity, error, onShowCode, onEnd, onEventAction }) {
+function LiveSession({ session, progress, activity, error, onShowCode, onEnd, onEventAction, onUnlockSolution, onUnlockForAll }) {
   const count = session.participantCount;
   return (
     <div className="flex flex-col gap-5">
@@ -35,12 +35,12 @@ function LiveSession({ session, progress, activity, error, onShowCode, onEnd, on
         <p className="opacity-70">No students have joined yet. Share the code {session.joinCode}.</p>
       )}
       {progress?.students.length > 0 && (
-        <ProgressRail workshop={progress.workshop} studentsProgress={progress.students} />
+        <ProgressRail workshop={progress.workshop} studentsProgress={progress.students} onUnlockForAll={onUnlockForAll} />
       )}
       {activity && (
         <div className="grid items-start gap-6 lg:grid-cols-[5fr_7fr]">
           <SessionTimeline activity={activity} />
-          <ActivityFeed events={activity.events} onAction={onEventAction} />
+          <ActivityFeed events={activity.events} onAction={onEventAction} onUnlockSolution={onUnlockSolution} />
         </div>
       )}
     </div>
@@ -98,10 +98,25 @@ export default function Teach() {
     }
   }
 
+  const RESOLVERS = { help_requested: api.resolveHelp, checkpoint_submitted: api.unlockStep, qcm_failed: api.resolveQcm };
+
   // Errors propagate to the card, which shows the backend message.
   async function handleEventAction(event) {
-    const action = event.type === 'help_requested' ? api.resolveHelp : api.unlockStep;
-    await action(event.step.id, event.student.id);
+    await RESOLVERS[event.type](event.step.id, event.student.id);
+    await refresh();
+  }
+
+  async function handleUnlockForAll(step) {
+    try {
+      await api.unlockSolutionForAll(step.id);
+      await refresh();
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
+  async function handleUnlockSolution(event) {
+    await api.unlockSolution(event.step.id, event.student.id);
     await refresh();
   }
 
@@ -140,6 +155,8 @@ export default function Teach() {
       onShowCode={() => setView('join')}
       onEnd={endSession}
       onEventAction={handleEventAction}
+      onUnlockSolution={handleUnlockSolution}
+      onUnlockForAll={handleUnlockForAll}
     />
   );
 }

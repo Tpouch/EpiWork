@@ -17,7 +17,7 @@ describe('progress state machine', () => {
     student = await prisma.user.create({ data: { name: 'Alice', role: 'student' } });
     workshop = await prisma.workshop.create({ data: { title: 'Networking', description: 'desc' } });
     stepA = await prisma.step.create({
-      data: { workshopId: workshop.id, order: 1, title: 'Step A', content: 'do A', isCheckpoint: false },
+      data: { workshopId: workshop.id, order: 1, title: 'Step A', content: 'do A' },
     });
     stepB = await prisma.step.create({
       data: {
@@ -25,13 +25,12 @@ describe('progress state machine', () => {
         order: 2,
         title: 'Step B',
         content: 'do B',
-        isCheckpoint: true,
-        questionType: 'text',
+        questionType: 'checkpoint',
         questionPrompt: 'Explain B',
       },
     });
     stepC = await prisma.step.create({
-      data: { workshopId: workshop.id, order: 3, title: 'Step C', content: 'do C', isCheckpoint: false },
+      data: { workshopId: workshop.id, order: 3, title: 'Step C', content: 'do C' },
     });
   });
 

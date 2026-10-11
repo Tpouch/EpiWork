@@ -12,6 +12,7 @@ import WorkshopRecap from './pages/student/WorkshopRecap';
 import StepPage from './pages/student/StepPage';
 import AdminHome from './pages/admin/AdminHome';
 import WorkshopEditor from './pages/admin/WorkshopEditor';
+import DocsEditor from './pages/admin/DocsEditor';
 import WorkshopReview from './pages/admin/WorkshopReview';
 import Workshops from './pages/admin/Workshops';
 import WorkshopDetail from './pages/admin/WorkshopDetail';
@@ -53,6 +54,7 @@ export default function App() {
                     <Route path="/history/:runId" element={<RunDetail />} />
                     <Route path="/accounts" element={<Accounts />} />
                     <Route path="/workshops/:id/edit" element={<WorkshopEditor />} />
+                    <Route path="/workshops/:id/docs/edit" element={<DocsEditor />} />
                     <Route path="/workshops/:id/review" element={<WorkshopReview />} />
                   </>
                 ) : (

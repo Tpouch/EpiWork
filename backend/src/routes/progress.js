@@ -1,7 +1,9 @@
 const express = require('express');
 const prisma = require('../db');
 const { requireAdmin, requireUser } = require('../middleware/auth');
-const { ensureProgress, submitAnswer, unlockStep, toggleHelp } = require('../progress/stateMachine');
+const { ensureProgress, submitAnswer, unlockStep, toggleHelp, unlockSolution, resolveQcmAlert } = require('../progress/stateMachine');
+const { participantStep } = require('../progress/stepVisibility');
+const { SessionError, unlockSolutionForAll } = require('../sessions/session');
 const { PUBLIC_FIELDS } = require('../accounts/accounts');
 const { FeedbackError, getMyFeedback, submitFeedback } = require('../feedback/feedback');
 const { MyWorkshopsError, listMyWorkshops, getMyWorkshopRecap } = require('../students/myWorkshops');
@@ -20,7 +22,7 @@ function sendFeedbackError(res, err) {
 router.get('/me/workshops/:id', requireUser, async (req, res) => {
   const workshopId = Number(req.params.id);
   const rows = await ensureProgress(prisma, workshopId, req.user.id);
-  res.json(rows);
+  res.json(rows.map((row) => ({ ...row, step: participantStep(row.step, { solutionUnlocked: row.solutionUnlocked }) })));
 });
 
 router.get('/me/workshops', requireUser, async (req, res) => {
@@ -115,6 +117,31 @@ router.get('/admin/feed', requireAdmin, async (req, res) => {
     updatedAt: row.updatedAt,
   }));
   res.json(feed);
+});
+
+router.post('/steps/:id/unlock-solution', requireAdmin, async (req, res) => {
+  try {
+    res.json(await unlockSolution(prisma, Number(req.params.id), Number(req.body.studentId)));
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+router.post('/steps/:id/unlock-solution-all', requireAdmin, async (req, res) => {
+  try {
+    res.json(await unlockSolutionForAll(prisma, Number(req.params.id)));
+  } catch (err) {
+    if (!(err instanceof SessionError)) throw err;
+    res.status(err.status).json({ error: err.message });
+  }
+});
+
+router.post('/steps/:id/resolve-qcm', requireAdmin, async (req, res) => {
+  try {
+    res.json(await resolveQcmAlert(prisma, Number(req.params.id), Number(req.body.studentId)));
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
 });
 
 module.exports = router;

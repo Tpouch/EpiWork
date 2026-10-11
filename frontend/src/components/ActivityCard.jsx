@@ -1,4 +1,4 @@
-import { Check, CircleHelp, MessageSquare } from 'lucide-react';
+import { Check, CircleHelp, LockOpen, MessageSquare, TriangleAlert } from 'lucide-react';
 import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
 import { formatTime } from '@/lib/formatTime';
@@ -6,12 +6,14 @@ import { useAsyncAction } from '@/lib/useAsyncAction';
 
 const KINDS = {
   help: { Icon: CircleHelp, color: 'var(--color-brutal-orange)', action: 'Mark resolved', closedLabel: 'resolved' },
+  qcm: { Icon: TriangleAlert, color: 'var(--color-brutal-red)', action: 'Mark resolved', closedLabel: 'resolved' },
   review: { Icon: MessageSquare, color: 'var(--color-brutal-cyan)', action: 'Approve', closedLabel: 'approved' },
   answer: { Icon: MessageSquare, color: 'var(--color-brutal-pink)' },
   done: { Icon: Check, color: 'var(--color-brutal-green)' },
 };
 
 function kindOf(event) {
+  if (event.type === 'qcm_failed') return 'qcm';
   if (event.type === 'help_requested') return 'help';
   if (event.type === 'checkpoint_submitted') return 'review';
   return event.answer ? 'answer' : 'done';
@@ -20,6 +22,7 @@ function kindOf(event) {
 function titleOf(event, kind) {
   const name = event.student.name;
   if (kind === 'help') return event.open ? `${name} needs help` : `${name} needed help`;
+  if (kind === 'qcm') return `${name} failed a QCM twice`;
   if (kind === 'review') return `${name} answered a checkpoint`;
   if (kind === 'answer') return `${name} answered a question`;
   return `${name} marked step ${event.step.number} done`;
@@ -32,10 +35,11 @@ function detailsOf(event, kind) {
   return parts.join(' · ');
 }
 
-export default function ActivityCard({ event, onAction }) {
+export default function ActivityCard({ event, onAction, onUnlockSolution }) {
   const kind = kindOf(event);
   const { Icon, color, action } = KINDS[kind];
   const { busy, error, run } = useAsyncAction(onAction);
+  const unlock = useAsyncAction(onUnlockSolution);
   return (
     <article
       className={cn(
@@ -56,10 +60,10 @@ export default function ActivityCard({ event, onAction }) {
         <p className="text-xs opacity-70">{detailsOf(event, kind)}</p>
         {event.answer && (
           <blockquote className="mt-2 border-2 border-brutal-line bg-brutal-field px-2.5 py-1.5 text-sm break-words">
-            {event.answer}
+            {kind === 'qcm' ? `Last answer: ${event.answer}` : event.answer}
           </blockquote>
         )}
-        {error && <p role="alert" className="mt-2 text-xs text-brutal-red">{error}</p>}
+        {(error || unlock.error) && <p role="alert" className="mt-2 text-xs text-brutal-red">{error || unlock.error}</p>}
       </div>
       <div className="flex flex-col items-end gap-1.5">
         <time dateTime={new Date(event.createdAt).toISOString()} className="text-xs tabular-nums opacity-70">
@@ -70,6 +74,12 @@ export default function ActivityCard({ event, onAction }) {
             {action}
           </Button>
         )}
+        {kind === 'help' && event.open && event.step?.hasSolution && (
+          <Button size="xs" variant="neutral" disabled={busy || unlock.busy} onClick={() => unlock.run(event)}>
+                    <LockOpen aria-hidden="true" />
+                    Unlock solution
+                  </Button>
+                )}
       </div>
     </article>
   );

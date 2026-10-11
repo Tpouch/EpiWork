@@ -37,6 +37,8 @@ model Workshop {
   joinCode       String?
   launchedAt     DateTime?
   steps          Step[]
+  sections       Section[]
+  docPages       DocPage[]
   participations Participation[]
   sessionEvents  SessionEvent[]
   runs           WorkshopRun[]
@@ -53,33 +55,58 @@ model Participation {
   @@unique([studentId, workshopId])
 }
 
+model Section {
+  id         Int      @id @default(autoincrement())
+  workshopId Int
+  workshop   Workshop @relation(fields: [workshopId], references: [id], onDelete: Cascade)
+  order      Int
+  title      String
+  steps      Step[]
+}
+
 model Step {
-  id              Int            @id @default(autoincrement())
-  workshopId      Int
-  workshop        Workshop       @relation(fields: [workshopId], references: [id])
-  order           Int
-  title           String
-  content         String
-  isCheckpoint    Boolean        @default(false)
-  questionType    String?
-  questionPrompt  String?
-  questionOptions String?
-  progress        StepProgress[]
-  sessionEvents   SessionEvent[]
+  id               Int            @id @default(autoincrement())
+  workshopId       Int
+  workshop         Workshop       @relation(fields: [workshopId], references: [id])
+  sectionId        Int?
+  section          Section?       @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  order            Int
+  title            String
+  content          String
+  hint             String?
+  solution         String?
+  questionType     String?
+  questionPrompt   String?
+  questionOptions  String?
+  questionAnswer   String?
+  questionFeedback String?
+  progress         StepProgress[]
+  sessionEvents    SessionEvent[]
 }
 
 model StepProgress {
-  id              Int      @id @default(autoincrement())
-  studentId       Int
-  student         User     @relation(fields: [studentId], references: [id])
-  stepId          Int
-  step            Step     @relation(fields: [stepId], references: [id])
-  status          String   @default("locked")
-  submittedAnswer String?
-  helpRequested   Boolean  @default(false)
-  updatedAt       DateTime @updatedAt
+  id               Int      @id @default(autoincrement())
+  studentId        Int
+  student          User     @relation(fields: [studentId], references: [id])
+  stepId           Int
+  step             Step     @relation(fields: [stepId], references: [id])
+  status           String   @default("locked")
+  submittedAnswer  String?
+  helpRequested    Boolean  @default(false)
+  solutionUnlocked Boolean  @default(false)
+  failedAttempts   Int      @default(0)
+  updatedAt        DateTime @updatedAt
 
   @@unique([studentId, stepId])
+}
+
+model DocPage {
+  id         Int      @id @default(autoincrement())
+  workshopId Int
+  workshop   Workshop @relation(fields: [workshopId], references: [id], onDelete: Cascade)
+  order      Int
+  title      String
+  content    String
 }
 
 model SessionEvent {

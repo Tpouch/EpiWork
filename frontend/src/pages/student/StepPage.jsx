@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { LifeBuoy } from 'lucide-react';
 import StepView from '../../components/StepView';
 import StepIndex from '../../components/StepIndex';
 import WorkshopHeader from '../../components/WorkshopHeader';
 import FinishModal from '../../components/FinishModal';
 import WorkshopFinished from '../../components/WorkshopFinished';
-import { Button } from '../../components/ui/button';
-import { cn } from '@/lib/utils';
+import HelpButton from '../../components/HelpButton';
+import WorkshopLayout from '../../components/WorkshopLayout';
+import DocsPanel, { DocsButton } from '../../components/DocsPanel';
+import { positionLabel } from '@/lib/sections';
 import { api } from '../../api';
 
 const POLL_MS = 4000;
@@ -34,23 +35,6 @@ function isWaitingOnAdmin(rows) {
   return current.status === 'pending_review' || current.helpRequested;
 }
 
-function HelpButton({ requested, disabled, onClick }) {
-  return (
-    <Button
-      variant="neutral"
-      onClick={onClick}
-      disabled={disabled || requested}
-      className={cn(
-        'border-brutal-orange text-brutal-ink',
-        requested && 'border-brutal-line bg-brutal-orange text-brutal-dark disabled:opacity-100 data-disabled:opacity-100',
-      )}
-    >
-      <LifeBuoy aria-hidden="true" />
-      {requested ? 'Help requested' : 'I need help'}
-    </Button>
-  );
-}
-
 export default function StepPage() {
   const { id } = useParams();
   const [workshop, setWorkshop] = useState(null);
@@ -61,6 +45,9 @@ export default function StepPage() {
   const [finishOpen, setFinishOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [feedback, setFeedback] = useState(null);
+  const [docs, setDocs] = useState([]);
+  const [docsOpen, setDocsOpen] = useState(false);
 
   async function load() {
     const [data, nextRating] = await Promise.all([api.myWorkshopProgress(id), api.myFeedback(id)]);
@@ -69,7 +56,7 @@ export default function StepPage() {
   }
 
   useEffect(() => {
-    Promise.all([api.myWorkshopRecap(id).then(setWorkshop), load()]).catch((err) => setError(err.message));
+    Promise.all([api.myWorkshopRecap(id).then(setWorkshop), api.workshopDocs(id).then(setDocs), load()]).catch((err) => setError(err.message));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
@@ -95,7 +82,12 @@ export default function StepPage() {
     setSubmitting(true);
     setError('');
     try {
-      await api.submitStep(viewed.stepId, answer);
+      const result = await api.submitStep(viewed.stepId, answer);
+      if (result.correct === false) {
+        setFeedback({ stepId: viewed.stepId, message: result.message });
+        return;
+      }
+      setFeedback(null);
       setAnswer('');
       await load();
       setViewedStepId(null);
@@ -143,6 +135,8 @@ export default function StepPage() {
     );
   }
 
+  const steps = rows.map((row) => row.step);
+  const helpButton = <HelpButton requested={current.helpRequested} disabled={submitting} onClick={requestHelp} />;
   const doneCount = rows.filter((row) => row.status === 'done').length;
   return (
     <div className="flex flex-col gap-6">
@@ -150,28 +144,48 @@ export default function StepPage() {
       <WorkshopHeader
         workshop={workshop}
         meta={`${doneCount} of ${rows.length} steps done`}
-        action={<HelpButton requested={current.helpRequested} disabled={submitting} onClick={requestHelp} />}
+        action={
+          <div className="flex flex-wrap gap-2">
+            {docs.length > 0 && <DocsButton open={docsOpen} onToggle={() => setDocsOpen(!docsOpen)} />}
+            {helpButton}
+          </div>
+        }
       />
       {errorAlert}
-      <div className="grid gap-5 md:grid-cols-[240px_1fr] md:items-start">
-        <StepIndex
-          steps={rows.map((row) => row.step)}
-          statuses={rows.map((row) => row.status)}
-          current={viewedIndex}
-          onSelect={(index) => setViewedStepId(rows[index].stepId)}
-        />
-        <StepView
-          step={viewed.step}
-          index={viewedIndex}
-          total={rows.length}
-          status={viewed.status}
-          answer={answer}
-          onAnswerChange={setAnswer}
-          onSubmit={submit}
-          isLastStep={isLastStep}
-          readOnly={submitting}
-        />
-      </div>
+      <WorkshopLayout
+        sidebar={
+          <StepIndex
+            steps={steps}
+            statuses={rows.map((row) => row.status)}
+            current={viewedIndex}
+            onSelect={(index) => setViewedStepId(rows[index].stepId)}
+          />
+        }
+        main={
+          <StepView
+            step={viewed.step}
+            label={positionLabel(steps, viewedIndex)}
+            lockedAction={viewed === current ? helpButton : null}
+            status={viewed.status}
+            answer={answer}
+            onAnswerChange={setAnswer}
+            onSubmit={submit}
+            isLastStep={isLastStep}
+            readOnly={submitting}
+            feedback={feedback?.stepId === viewed.stepId ? feedback.message : null}
+          />
+        }
+        docsOpen={docsOpen}
+        onCloseDocs={() => setDocsOpen(false)}
+        renderDocs={(inModal) => (
+          <DocsPanel
+            key={viewed.step.section?.title ?? 'none'}
+            pages={docs}
+            sectionTitle={viewed.step.section?.title}
+            onClose={inModal ? undefined : () => setDocsOpen(false)}
+          />
+        )}
+      />
       {finishModal}
     </div>
   );

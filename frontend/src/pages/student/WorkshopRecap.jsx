@@ -1,19 +1,22 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import StepReader from '../../components/StepReader';
-import StepIndex from '../../components/StepIndex';
-import WorkshopHeader from '../../components/WorkshopHeader';
+import WorkshopBrowser from '../../components/WorkshopBrowser';
 import { formatShortDate } from '@/lib/formatTime';
 import { api } from '../../api';
 
 export default function WorkshopRecap() {
   const { id } = useParams();
   const [recap, setRecap] = useState(null);
+  const [docs, setDocs] = useState([]);
   const [error, setError] = useState('');
-  const [current, setCurrent] = useState(0);
 
   useEffect(() => {
-    api.myWorkshopRecap(id).then(setRecap).catch((err) => setError(err.message));
+    Promise.all([api.myWorkshopRecap(id), api.workshopDocs(id)])
+      .then(([nextRecap, nextDocs]) => {
+        setRecap(nextRecap);
+        setDocs(nextDocs);
+      })
+      .catch((err) => setError(err.message));
   }, [id]);
 
   const backLink = (
@@ -33,24 +36,12 @@ export default function WorkshopRecap() {
   return (
     <div className="flex flex-col gap-6">
       {backLink}
-      <WorkshopHeader
+      <WorkshopBrowser
         workshop={recap}
+        steps={steps}
+        docs={docs}
         meta={`Joined ${formatShortDate(recap.joinedAt)} · ${steps.length} step${steps.length === 1 ? '' : 's'}`}
       />
-      {steps.length === 0 ? (
-        <p className="opacity-70">This workshop has no steps yet.</p>
-      ) : (
-        <div className="grid gap-5 md:grid-cols-[240px_1fr] md:items-start">
-          <StepIndex steps={steps} current={current} onSelect={setCurrent} />
-          <StepReader
-            step={steps[current]}
-            index={current}
-            total={steps.length}
-            onPrevious={() => setCurrent(current - 1)}
-            onNext={() => setCurrent(current + 1)}
-          />
-        </div>
-      )}
     </div>
   );
 }
