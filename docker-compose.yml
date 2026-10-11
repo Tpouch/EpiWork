@@ -1,0 +1,45 @@
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "4000:4000"
+    env_file:
+      - path: ./.env
+        required: false
+    environment:
+      - DATABASE_URL=file:/data/dev.db
+    volumes:
+      - backend-data:/data
+    develop:
+      watch:
+        - action: sync+restart
+          path: ./backend/src
+          target: /app/src
+        - action: rebuild
+          path: ./backend/package.json
+        - action: rebuild
+          path: ./backend/pnpm-lock.yaml
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_PROXY_TARGET=http://backend:4000
+    depends_on:
+      - backend
+    develop:
+      watch:
+        - action: sync
+          path: ./frontend/src
+          target: /app/src
+        - action: sync
+          path: ./frontend/index.html
+          target: /app/index.html
+        - action: rebuild
+          path: ./frontend/package.json
+        - action: rebuild
+          path: ./frontend/pnpm-lock.yaml
+
+volumes:
+  backend-data:

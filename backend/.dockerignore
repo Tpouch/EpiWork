@@ -1,0 +1,5 @@
+node_modules
+prisma/dev.db
+prisma/test.db
+prisma/.seeded
+.env

@@ -15,8 +15,10 @@ export default defineConfig({
     },
   },
   server: {
+    host: true,
+    allowedHosts: ['epiwork.devgoblin.fr'],
     proxy: {
-      '/api': 'http://localhost:4000',
+      '/api': process.env.VITE_API_PROXY_TARGET || 'http://localhost:4000',
     },
   },
 })
