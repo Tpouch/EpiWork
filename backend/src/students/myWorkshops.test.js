@@ -136,8 +136,7 @@ describe('my workshops', () => {
 
   test('returns the recap with steps in order and without question fields', async () => {
     const second = await addStep(git, 2, {
-      isCheckpoint: true,
-      questionType: 'multiple_choice',
+      questionType: 'qcm',
       questionPrompt: 'Which command?',
       questionOptions: JSON.stringify(['merge', 'rebase']),
     });
@@ -151,8 +150,8 @@ describe('my workshops', () => {
       icon: '🌿',
       joinedAt,
       steps: [
-        { id: first.id, order: 1, title: 'Step 1', content: 'Content 1' },
-        { id: second.id, order: 2, title: 'Step 2', content: 'Content 2' },
+        { id: first.id, order: 1, title: 'Step 1', content: 'Content 1', hint: null, solution: null, hasSolution: false, section: null },
+        { id: second.id, order: 2, title: 'Step 2', content: 'Content 2', hint: null, solution: null, hasSolution: false, section: null },
       ],
     });
   });

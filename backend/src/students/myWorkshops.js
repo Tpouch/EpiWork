@@ -1,4 +1,5 @@
 const { summarizeProgress } = require('./progressSummary');
+const { participantStep } = require('../progress/stepVisibility');
 
 class MyWorkshopsError extends Error {
   constructor(status, message) {
@@ -48,7 +49,17 @@ async function listMyWorkshops(prisma, studentId) {
   }));
 }
 
-// The step select is the whole point of the recap: question and checkpoint fields stay on the server.
+const RECAP_STEP_FIELDS = {
+  id: true,
+  order: true,
+  title: true,
+  content: true,
+  hint: true,
+  solution: true,
+  section: { select: { id: true, title: true, order: true } },
+};
+
+// Question and checkpoint fields stay on the server; solutions only once this participant's session is over.
 async function getMyWorkshopRecap(prisma, workshopId, studentId) {
   const participation = await prisma.participation.findUnique({
     where: { studentId_workshopId: { studentId, workshopId } },
@@ -57,13 +68,21 @@ async function getMyWorkshopRecap(prisma, workshopId, studentId) {
       workshop: {
         select: {
           ...WORKSHOP_FIELDS,
-          steps: { orderBy: { order: 'asc' }, select: { id: true, order: true, title: true, content: true } },
+          isActive: true,
+          launchedAt: true,
+          steps: { orderBy: { order: 'asc' }, select: RECAP_STEP_FIELDS },
         },
       },
     },
   });
   if (!participation) throw new MyWorkshopsError(404, 'You have not joined this workshop.');
-  return { ...participation.workshop, joinedAt: participation.joinedAt };
+  const { isActive, launchedAt, steps, ...workshop } = participation.workshop;
+  const sessionOver = !isActive || participation.joinedAt < launchedAt;
+  return {
+    ...workshop,
+    joinedAt: participation.joinedAt,
+    steps: steps.map((step) => participantStep(step, { sessionOver })),
+  };
 }
 
 module.exports = { MyWorkshopsError, listMyWorkshops, getMyWorkshopRecap };
