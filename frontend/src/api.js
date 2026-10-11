@@ -1,5 +1,6 @@
 const BASE = '/api';
 const SESSION_KEY = 'epiwork_session';
+const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
 
 function readSession() {
   const raw = localStorage.getItem(SESSION_KEY);
@@ -27,15 +28,20 @@ function errorMessage(text) {
   }
 }
 
+function requestBody(options) {
+  if (options.rawBody !== undefined) return options.rawBody;
+  return options.body === undefined ? undefined : JSON.stringify(options.body);
+}
+
 async function request(path, options = {}) {
   const token = readSession()?.token;
   const res = await fetch(BASE + path, {
     method: options.method || 'GET',
     headers: {
-      'Content-Type': 'application/json',
+      'Content-Type': options.contentType ?? 'application/json',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
-    body: options.body === undefined ? undefined : JSON.stringify(options.body),
+    body: requestBody(options),
   });
   // A 401 while holding a token means the session is gone (logout elsewhere,
   // password reset, account deleted, reseeded database): start over at login.
@@ -90,9 +96,25 @@ export const api = {
   createWorkshop: (data) => request('/workshops', { method: 'POST', body: data }),
   updateWorkshop: (id, data) => request(`/workshops/${id}`, { method: 'PATCH', body: data }),
   deleteWorkshop: (id) => request(`/workshops/${id}`, { method: 'DELETE' }),
-  createStep: (workshopId, data) => request(`/workshops/${workshopId}/steps`, { method: 'POST', body: data }),
   updateStep: (id, data) => request(`/steps/${id}`, { method: 'PATCH', body: data }),
   deleteStep: (id) => request(`/steps/${id}`, { method: 'DELETE' }),
+  getWorkshop: (id) => request(`/workshops/${id}`),
+  createSection: (workshopId, title) => request(`/workshops/${workshopId}/sections`, { method: 'POST', body: { title } }),
+  updateSection: (id, data) => request(`/sections/${id}`, { method: 'PATCH', body: data }),
+  deleteSection: (id) => request(`/sections/${id}`, { method: 'DELETE' }),
+  createStepInSection: (sectionId) => request(`/sections/${sectionId}/steps`, { method: 'POST', body: {} }),
+  workshopDocs: (workshopId) => request(`/workshops/${workshopId}/docs`),
+  createDocPage: (workshopId, data) => request(`/workshops/${workshopId}/docs`, { method: 'POST', body: data }),
+  updateDocPage: (id, data) => request(`/docs/${id}`, { method: 'PATCH', body: data }),
+  deleteDocPage: (id) => request(`/docs/${id}`, { method: 'DELETE' }),
+  unlockSolution: (stepId, studentId) =>
+    request(`/steps/${stepId}/unlock-solution`, { method: 'POST', body: { studentId } }),
+  unlockSolutionForAll: (stepId) => request(`/steps/${stepId}/unlock-solution-all`, { method: 'POST', body: {} }),
+  resolveQcm: (stepId, studentId) => request(`/steps/${stepId}/resolve-qcm`, { method: 'POST', body: { studentId } }),
+  uploadImage: (file) => {
+    if (file.size > MAX_UPLOAD_BYTES) return Promise.reject(new Error('Images must be 5 MB or smaller.'));
+    return request('/uploads', { method: 'POST', rawBody: file, contentType: file.type });
+  },
   myWorkshopProgress: (workshopId) => request(`/me/workshops/${workshopId}`),
   myWorkshops: () => request('/me/workshops'),
   myWorkshopRecap: (workshopId) => request(`/me/workshops/${workshopId}/recap`),

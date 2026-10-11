@@ -3,27 +3,27 @@ import ActivityCard from './ActivityCard';
 import SectionHeader from './SectionHeader';
 import { Button } from './ui/button';
 
-const CARD_TYPES = new Set(['help_requested', 'checkpoint_submitted', 'step_done']);
+const CARD_TYPES = new Set(['help_requested', 'qcm_failed', 'checkpoint_submitted', 'step_done']);
 const FILTERS = {
   All: () => true,
-  Help: (event) => event.type === 'help_requested',
+  Help: (event) => event.type === 'help_requested' || event.type === 'qcm_failed',
   Answers: (event) => event.type === 'checkpoint_submitted' || Boolean(event.answer),
   Done: (event) => event.type === 'step_done',
 };
 
-function CardGroup({ label, events, onAction }) {
+function CardGroup({ label, events, onAction, onUnlockSolution }) {
   if (events.length === 0) return null;
   return (
     <div className="flex flex-col gap-2.5">
       <p className="text-xs uppercase tracking-widest opacity-60">{label}</p>
       {events.map((event) => (
-        <ActivityCard key={event.id} event={event} onAction={onAction} />
+        <ActivityCard key={event.id} event={event} onAction={onAction} onUnlockSolution={onUnlockSolution} />
       ))}
     </div>
   );
 }
 
-export default function ActivityFeed({ events, onAction }) {
+export default function ActivityFeed({ events, onAction, onUnlockSolution }) {
   const [filter, setFilter] = useState('All');
   const cards = events.filter((event) => CARD_TYPES.has(event.type) && FILTERS[filter](event));
   const openCount = events.filter((event) => event.open).length;
@@ -53,8 +53,8 @@ export default function ActivityFeed({ events, onAction }) {
         </div>
       </div>
       <div className="flex max-h-[28rem] flex-col gap-4 overflow-y-auto border-2 border-brutal-line bg-brutal-surface p-3 shadow-brutal">
-        <CardGroup label="Needs you" events={cards.filter((event) => event.open)} onAction={onAction} />
-        <CardGroup label="Earlier" events={cards.filter((event) => !event.open)} onAction={onAction} />
+        <CardGroup label="Needs you" events={cards.filter((event) => event.open)} onAction={onAction} onUnlockSolution={onUnlockSolution} />
+        <CardGroup label="Earlier" events={cards.filter((event) => !event.open)} onAction={onAction} onUnlockSolution={onUnlockSolution} />
         {cards.length === 0 && (
           <p className="text-sm opacity-70">
             {filter === 'All' ? 'Nothing yet. Events show up as students work.' : 'No events match this filter.'}

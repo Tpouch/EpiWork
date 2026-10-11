@@ -1,5 +1,7 @@
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from './ui/tooltip';
+import { LockOpen } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { groupBySection, hasSections } from '@/lib/sections';
 
 const STATUS_STYLES = {
   done: { className: 'bg-brutal-green text-brutal-dark', label: 'done with step' },
@@ -8,7 +10,8 @@ const STATUS_STYLES = {
   locked: { className: 'bg-neutral-300 text-brutal-ink', label: 'not started' },
 };
 const HELP_STYLE = { className: 'bg-brutal-orange text-brutal-dark', label: 'needs help' };
-const LEGEND = [STATUS_STYLES.available, STATUS_STYLES.pending_review, HELP_STYLE, STATUS_STYLES.done];
+const QCM_STYLE = { className: 'bg-brutal-red text-brutal-dark', label: 'failed a QCM twice' };
+const LEGEND = [STATUS_STYLES.available, STATUS_STYLES.pending_review, HELP_STYLE, QCM_STYLE, STATUS_STYLES.done];
 
 function initials(name) {
   const words = name.trim().split(/\s+/).filter(Boolean);
@@ -24,6 +27,7 @@ function currentPosition(progress) {
 }
 
 function styleFor(row) {
+  if (row.failedAttempts >= 2) return QCM_STYLE;
   return row.helpRequested ? HELP_STYLE : STATUS_STYLES[row.status] ?? STATUS_STYLES.locked;
 }
 
@@ -48,7 +52,47 @@ function StudentDot({ student, stepIndex, row }) {
   );
 }
 
-export default function ProgressRail({ workshop, studentsProgress }) {
+const COLUMN_REM = 3.5;
+
+function SectionRow({ steps }) {
+  return (
+    <div className="flex min-w-full border-b-2 border-brutal-line">
+      {groupBySection(steps).map((group) => (
+        <div
+          key={group.key ?? 'unsorted'}
+          title={group.title ?? ''}
+          style={{ flexGrow: group.items.length, minWidth: `${group.items.length * COLUMN_REM}rem` }}
+          className="truncate border-r-2 border-brutal-line px-2 py-1 font-heading text-xs last:border-r-0"
+        >
+          {group.title}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function StepNumber({ step, number, onUnlockForAll }) {
+  const base = 'border-t-2 border-brutal-line py-1 text-center text-xs';
+  if (!step.hasSolution || !onUnlockForAll) {
+    return <span className={cn(base, 'opacity-70')} title={step.title}>{number}</span>;
+  }
+  function confirmUnlock() {
+    if (globalThis.confirm(`Unlock the solution of "${step.title}" for everyone in this session?`)) onUnlockForAll(step);
+  }
+  return (
+    <button
+      type="button"
+      onClick={confirmUnlock}
+      title={`${step.title}: unlock the solution for everyone`}
+      className={cn(base, 'flex items-center justify-center gap-1 cursor-pointer opacity-70 hover:bg-brutal-accent hover:text-brutal-dark hover:opacity-100')}
+    >
+      <LockOpen className="size-3" aria-hidden="true" />
+      {number}
+    </button>
+  );
+}
+
+export default function ProgressRail({ workshop, studentsProgress, onUnlockForAll }) {
   const columns = workshop.steps.map(() => []);
   for (const { student, progress } of studentsProgress) {
     const { stepIndex, row } = currentPosition(progress);
@@ -59,6 +103,7 @@ export default function ProgressRail({ workshop, studentsProgress }) {
     <TooltipProvider>
       <div className="flex flex-col gap-3">
         <div className="overflow-x-auto border-3 border-brutal-line bg-brutal-surface">
+          {hasSections(workshop.steps) && <SectionRow steps={workshop.steps} />}
           <div className="flex min-w-full">
             {workshop.steps.map((step, index) => (
               <div
@@ -70,9 +115,7 @@ export default function ProgressRail({ workshop, studentsProgress }) {
                     <StudentDot key={dot.student.id} {...dot} />
                   ))}
                 </div>
-                <span className="border-t-2 border-brutal-line py-1 text-center text-xs opacity-70" title={step.title}>
-                  {index + 1}
-                </span>
+                <StepNumber step={step} number={index + 1} onUnlockForAll={onUnlockForAll} />
               </div>
             ))}
           </div>
