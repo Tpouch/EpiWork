@@ -49,7 +49,7 @@ export default function StepTabs({ step, lockedAction }) {
 
   return (
     <div>
-      <div role="tablist" aria-label="Step content" onKeyDown={onKeyDown} className="flex flex-wrap">
+      <div role="tablist" aria-label="Step content" className="flex flex-wrap">
         {tabs.map((tab) => {
           const selected = tab.id === active.id;
           return (
@@ -63,6 +63,7 @@ export default function StepTabs({ step, lockedAction }) {
               aria-controls={`panel-${step.id}`}
               tabIndex={selected ? 0 : -1}
               onClick={() => setActiveId(tab.id)}
+              onKeyDown={onKeyDown}
               className={cn(
                 '-mb-0.5 -mr-0.5 flex items-center gap-1.5 border-2 border-brutal-line px-3 py-1.5 font-heading text-sm cursor-pointer',
                 selected ? cn(SELECTED_STYLES[tab.id], 'text-brutal-dark') : 'bg-brutal-surface',

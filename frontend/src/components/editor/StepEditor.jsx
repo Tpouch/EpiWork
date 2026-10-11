@@ -46,7 +46,7 @@ export default function StepEditor({ step, label, onSaved, onDelete }) {
         onChange={(e) => edit('title', e.target.value)}
         className="border-2 border-dashed border-brutal-line bg-brutal-field px-2 py-1 font-heading text-2xl"
       />
-      <div role="group" aria-label="Sub step content" className="flex flex-wrap">
+      <fieldset aria-label="Sub step content" className="flex flex-wrap">
         {FIELDS.map((option) => (
           <button
             key={option.id}
@@ -62,7 +62,7 @@ export default function StepEditor({ step, label, onSaved, onDelete }) {
             {option.id !== 'content' && draft[option.id].trim() && <span aria-label="(filled)"> •</span>}
           </button>
         ))}
-      </div>
+      </fieldset>
       <div className="border-2 border-brutal-line p-3">
         <MarkdownField
           key={field.id}

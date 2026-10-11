@@ -22,9 +22,9 @@ function CodeBlock({ children }) {
 }
 
 const COMPONENTS = {
-  h1: ({ node: _node, ...props }) => <h4 className="mb-2 mt-4 text-2xl font-heading first:mt-0" {...props} />,
-  h2: ({ node: _node, ...props }) => <h5 className="mb-2 mt-4 text-xl font-heading first:mt-0" {...props} />,
-  h3: ({ node: _node, ...props }) => <h6 className="mb-2 mt-3 text-lg font-heading first:mt-0" {...props} />,
+  h1: ({ node: _node, children, ...props }) => <h4 className="mb-2 mt-4 text-2xl font-heading first:mt-0" {...props}>{children}</h4>,
+  h2: ({ node: _node, children, ...props }) => <h5 className="mb-2 mt-4 text-xl font-heading first:mt-0" {...props}>{children}</h5>,
+  h3: ({ node: _node, children, ...props }) => <h6 className="mb-2 mt-3 text-lg font-heading first:mt-0" {...props}>{children}</h6>,
   p: ({ node: _node, ...props }) => <p className="mb-3 max-w-prose leading-relaxed last:mb-0" {...props} />,
   ul: ({ node: _node, ...props }) => <ul className="mb-3 list-disc pl-6" {...props} />,
   ol: ({ node: _node, ...props }) => <ol className="mb-3 list-decimal pl-6" {...props} />,

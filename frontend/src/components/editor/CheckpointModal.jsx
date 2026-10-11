@@ -13,9 +13,16 @@ const TYPES = [
   { id: 'qcm', label: 'QCM', Icon: CircleDot, help: 'Graded automatically.' },
 ];
 
+// Stable keys so React keeps each choice's input (focus, cursor) when another one is removed.
+let lastChoiceKey = 0;
+function newChoice(text = '') {
+  lastChoiceKey += 1;
+  return { key: lastChoiceKey, text };
+}
+
 function savedChoices(step) {
   const saved = step.questionType === 'qcm' && step.questionOptions ? JSON.parse(step.questionOptions) : [];
-  return saved.length >= 2 ? saved : ['', ''];
+  return (saved.length >= 2 ? saved : ['', '']).map(newChoice);
 }
 
 function payloadFor(type, { prompt, choices, rightIndex, feedback }) {
@@ -25,8 +32,8 @@ function payloadFor(type, { prompt, choices, rightIndex, feedback }) {
   return {
     questionType: type,
     questionPrompt: prompt.trim(),
-    questionOptions: choices.map((choice) => choice.trim()).filter(Boolean),
-    questionAnswer: choices[rightIndex]?.trim() || null,
+    questionOptions: choices.map((choice) => choice.text.trim()).filter(Boolean),
+    questionAnswer: choices[rightIndex]?.text.trim() || null,
     questionFeedback: feedback.trim() || null,
   };
 }
@@ -35,13 +42,13 @@ export default function CheckpointModal({ step, onClose, onSave }) {
   const [type, setType] = useState(step.questionType ?? 'checkpoint');
   const [prompt, setPrompt] = useState(step.questionPrompt ?? '');
   const [choices, setChoices] = useState(() => savedChoices(step));
-  const [rightIndex, setRightIndex] = useState(() => savedChoices(step).indexOf(step.questionAnswer));
+  const [rightIndex, setRightIndex] = useState(() => savedChoices(step).findIndex((choice) => choice.text === step.questionAnswer));
   const [feedback, setFeedback] = useState(step.questionFeedback ?? '');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
   function setChoice(index, value) {
-    setChoices(choices.map((choice, i) => (i === index ? value : choice)));
+    setChoices(choices.map((choice, i) => (i === index ? { ...choice, text: value } : choice)));
   }
 
   function removeChoice(index) {
@@ -98,11 +105,11 @@ export default function CheckpointModal({ step, onClose, onSave }) {
             <legend className="mb-1 text-sm font-semibold">Choices (select the right answer)</legend>
             <RadioGroup value={String(rightIndex)} onValueChange={(value) => setRightIndex(Number(value))} className="flex flex-col gap-2">
               {choices.map((choice, index) => (
-                <div key={index} className="flex items-center gap-2">
+                <div key={choice.key} className="flex items-center gap-2">
                   <RadioGroupItem value={String(index)} aria-label={`Choice ${index + 1} is the right answer`} className="rounded-none" />
                   <Input
                     aria-label={`Choice ${index + 1}`}
-                    value={choice}
+                    value={choice.text}
                     onChange={(e) => setChoice(index, e.target.value)}
                     className={cn(rightIndex === index && 'bg-brutal-green text-brutal-dark')}
                   />
@@ -119,7 +126,7 @@ export default function CheckpointModal({ step, onClose, onSave }) {
                 </div>
               ))}
             </RadioGroup>
-            <Button type="button" size="xs" variant="neutral" className="self-start" onClick={() => setChoices([...choices, ''])}>
+            <Button type="button" size="xs" variant="neutral" className="self-start" onClick={() => setChoices([...choices, newChoice()])}>
               <Plus aria-hidden="true" />
               Add a choice
             </Button>

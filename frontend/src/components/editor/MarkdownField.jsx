@@ -44,7 +44,7 @@ export default function MarkdownField({ id, label, value, onChange, placeholder 
       <div className="flex flex-wrap items-center justify-between gap-2">
         <Label htmlFor={id}>{label}</Label>
         <div className="flex flex-wrap items-center gap-2">
-          <div role="group" aria-label={`${label} view`} className="flex">
+          <fieldset aria-label={`${label} view`} className="flex">
             {MODES.map((option) => (
               <button
                 key={option.id}
@@ -59,7 +59,7 @@ export default function MarkdownField({ id, label, value, onChange, placeholder 
                 {option.label}
               </button>
             ))}
-          </div>
+          </fieldset>
           <Button type="button" size="xs" variant="neutral" disabled={uploading} onClick={() => fileInput.current?.click()}>
             <ImagePlus aria-hidden="true" />
             {uploading ? 'Uploading…' : 'Add an image'}
