@@ -8,6 +8,7 @@ services:
         required: false
     environment:
       - DATABASE_URL=file:/data/dev.db
+      - UPLOAD_DIR=/data/uploads
     volumes:
       - backend-data:/data
     develop:
