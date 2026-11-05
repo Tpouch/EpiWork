@@ -1,7 +1,7 @@
 const express = require('express');
 const prisma = require('../db');
 const { requireAdmin, requireUser } = require('../middleware/auth');
-const { ensureProgress, submitAnswer, unlockStep, toggleHelp, unlockSolution, resolveQcmAlert } = require('../progress/stateMachine');
+const { ensureProgress, submitAnswer, unlockStep, toggleHelp, unlockSolution, resolveQcmAlert, resolveFlagLock } = require('../progress/stateMachine');
 const { participantStep } = require('../progress/stepVisibility');
 const { SessionError, unlockSolutionForAll } = require('../sessions/session');
 const { PUBLIC_FIELDS } = require('../accounts/accounts');
@@ -65,7 +65,7 @@ router.post('/steps/:id/submit', requireUser, async (req, res) => {
     const result = await submitAnswer(prisma, Number(req.params.id), req.user.id, req.body.answer ?? null);
     res.json(result);
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    res.status(err.status ?? 400).json({ error: err.message });
   }
 });
 
@@ -139,6 +139,14 @@ router.post('/steps/:id/unlock-solution-all', requireAdmin, async (req, res) => 
 router.post('/steps/:id/resolve-qcm', requireAdmin, async (req, res) => {
   try {
     res.json(await resolveQcmAlert(prisma, Number(req.params.id), Number(req.body.studentId)));
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+router.post('/steps/:id/resolve-flag', requireAdmin, async (req, res) => {
+  try {
+    res.json(await resolveFlagLock(prisma, Number(req.params.id), Number(req.body.studentId)));
   } catch (err) {
     res.status(400).json({ error: err.message });
   }

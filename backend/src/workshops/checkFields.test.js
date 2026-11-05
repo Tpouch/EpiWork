@@ -12,6 +12,7 @@ describe('checkFields', () => {
       questionOptions: null,
       questionAnswer: null,
       questionFeedback: null,
+      flagExoId: null,
     });
   });
 
@@ -40,5 +41,23 @@ describe('checkFields', () => {
 
   it('rejects an empty title', () => {
     expect(checkFields({ title: '  ' }).error).toBe('Title cannot be empty.');
+  });
+
+  it('accepts a flag step with an exercise id', () => {
+    const { data } = checkFields({ questionType: 'flag', flagExoId: '02' });
+    expect(data).toEqual({ questionType: 'flag', flagExoId: '02' });
+  });
+
+  it('does not ask for a question on a flag step', () => {
+    expect(checkFields({ questionType: 'flag', flagExoId: '02' })).not.toHaveProperty('error');
+  });
+
+  it('rejects a flag step without exercise id', () => {
+    expect(checkFields({ questionType: 'flag' })).toHaveProperty('error');
+    expect(checkFields({ questionType: 'flag', flagExoId: '  ' })).toHaveProperty('error');
+  });
+
+  it('rejects an exercise id with the separator used by the flag scheme', () => {
+    expect(checkFields({ questionType: 'flag', flagExoId: '0|2' })).toHaveProperty('error');
   });
 });
