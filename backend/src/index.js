@@ -12,6 +12,7 @@ const uploadRoutes = require('./routes/uploads');
 const progressRoutes = require('./routes/progress');
 const sessionRoutes = require('./routes/session');
 const runRoutes = require('./routes/runs');
+const checkerRoutes = require('./routes/checker');
 const { attachUser } = require('./middleware/auth');
 const { ensureDefaultAdmin } = require('./accounts/accounts');
 
@@ -32,6 +33,7 @@ app.use('/api', uploadRoutes);
 app.use('/api', progressRoutes);
 app.use('/api', sessionRoutes);
 app.use('/api', runRoutes);
+app.use('/api', checkerRoutes);
 
 const PORT = process.env.PORT || 4000;
 

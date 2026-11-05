@@ -1,15 +1,23 @@
-const CHECK_TYPES = ['checkpoint', 'question', 'qcm'];
-const TEXT_FIELDS = ['title', 'content', 'hint', 'solution', 'questionPrompt', 'questionAnswer', 'questionFeedback'];
-const CLEARED_CHECK = { questionPrompt: null, questionOptions: null, questionAnswer: null, questionFeedback: null };
+const CHECK_TYPES = ['checkpoint', 'question', 'qcm', 'flag'];
+const TEXT_FIELDS = ['title', 'content', 'hint', 'solution', 'questionPrompt', 'questionAnswer', 'questionFeedback', 'flagExoId'];
+const CLEARED_CHECK = { questionPrompt: null, questionOptions: null, questionAnswer: null, questionFeedback: null, flagExoId: null };
+const PROMPTLESS_TYPES = ['checkpoint', 'flag'];
 
 function blankToNull(value) {
   return typeof value === 'string' && value.trim() === '' ? null : value;
 }
 
+const EXO_ID_SHAPE = /^[A-Za-z0-9_-]+$/;
+
+function validateFlagExo(exoId) {
+  return EXO_ID_SHAPE.test(exoId ?? '') ? null : 'Give the exercise id of the flag (letters, digits, - or _).';
+}
+
 function validateCheck(data) {
   const { questionType: type } = data;
   if (!CHECK_TYPES.includes(type)) return 'Unknown check type.';
-  if (type !== 'checkpoint' && !data.questionPrompt) return 'Write the question.';
+  if (!PROMPTLESS_TYPES.includes(type) && !data.questionPrompt) return 'Write the question.';
+  if (type === 'flag') return validateFlagExo(data.flagExoId);
   if (type !== 'qcm') return null;
   const options = JSON.parse(data.questionOptions ?? '[]');
   if (options.length < 2) return 'A QCM needs at least two choices.';

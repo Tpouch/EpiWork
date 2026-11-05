@@ -7,17 +7,19 @@ datasource db {
 }
 
 model User {
-  id             Int             @id @default(autoincrement())
-  name           String
-  email          String?         @unique
-  role           String
-  passwordHash   String?
-  accentColor    String?
-  sessions       Session[]
-  stepProgress   StepProgress[]
-  participations Participation[]
-  sessionEvents  SessionEvent[]
-  feedback       Feedback[]
+  id              Int              @id @default(autoincrement())
+  name            String
+  email           String?          @unique
+  role            String
+  passwordHash    String?
+  accentColor     String?
+  sessions        Session[]
+  stepProgress    StepProgress[]
+  participations  Participation[]
+  sessionEvents   SessionEvent[]
+  feedback        Feedback[]
+  checkerConfigs  CheckerConfig[]
+  flagSubmissions FlagSubmission[]
 }
 
 model Session {
@@ -32,6 +34,7 @@ model Workshop {
   id             Int             @id @default(autoincrement())
   title          String
   description    String
+  slug           String?         @unique
   icon           String          @default("📘")
   isActive       Boolean         @default(false)
   joinCode       String?
@@ -42,6 +45,7 @@ model Workshop {
   participations Participation[]
   sessionEvents  SessionEvent[]
   runs           WorkshopRun[]
+  checkerConfigs CheckerConfig[]
 }
 
 model Participation {
@@ -65,11 +69,11 @@ model Section {
 }
 
 model Step {
-  id               Int            @id @default(autoincrement())
+  id               Int              @id @default(autoincrement())
   workshopId       Int
-  workshop         Workshop       @relation(fields: [workshopId], references: [id])
+  workshop         Workshop         @relation(fields: [workshopId], references: [id])
   sectionId        Int?
-  section          Section?       @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  section          Section?         @relation(fields: [sectionId], references: [id], onDelete: Cascade)
   order            Int
   title            String
   content          String
@@ -80,8 +84,10 @@ model Step {
   questionOptions  String?
   questionAnswer   String?
   questionFeedback String?
+  flagExoId        String?
   progress         StepProgress[]
   sessionEvents    SessionEvent[]
+  flagSubmissions  FlagSubmission[]
 }
 
 model StepProgress {
@@ -142,4 +148,25 @@ model Feedback {
   createdAt DateTime
 
   @@unique([runId, studentId])
+}
+
+model CheckerConfig {
+  id           Int      @id @default(autoincrement())
+  workshopId   Int
+  workshop     Workshop @relation(fields: [workshopId], references: [id], onDelete: Cascade)
+  studentId    Int
+  student      User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  configuredAt DateTime
+
+  @@unique([workshopId, studentId])
+}
+
+model FlagSubmission {
+  id        Int      @id @default(autoincrement())
+  studentId Int
+  student   User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  stepId    Int
+  step      Step     @relation(fields: [stepId], references: [id], onDelete: Cascade)
+  ok        Boolean
+  createdAt DateTime
 }

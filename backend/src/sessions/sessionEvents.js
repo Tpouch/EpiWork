@@ -3,6 +3,7 @@ const CLOSED_BY = {
   help_requested: 'help_resolved',
   checkpoint_submitted: 'step_done',
   qcm_failed: 'qcm_resolved',
+  flag_locked: 'flag_unlocked',
 };
 
 // createdAt is set explicitly (like Participation.joinedAt) so it compares

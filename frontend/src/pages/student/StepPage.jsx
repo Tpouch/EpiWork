@@ -8,6 +8,7 @@ import WorkshopFinished from '../../components/WorkshopFinished';
 import HelpButton from '../../components/HelpButton';
 import WorkshopLayout from '../../components/WorkshopLayout';
 import DocsPanel, { DocsButton } from '../../components/DocsPanel';
+import CheckerSetup from '../../components/CheckerSetup';
 import { positionLabel } from '@/lib/sections';
 import { api } from '../../api';
 
@@ -84,7 +85,7 @@ export default function StepPage() {
     try {
       const result = await api.submitStep(viewed.stepId, answer);
       if (result.correct === false) {
-        setFeedback({ stepId: viewed.stepId, message: result.message });
+        setFeedback({ stepId: viewed.stepId, message: result.message, locked: result.locked });
         return;
       }
       setFeedback(null);
@@ -146,6 +147,7 @@ export default function StepPage() {
         meta={`${doneCount} of ${rows.length} steps done`}
         action={
           <div className="flex flex-wrap gap-2">
+            <CheckerSetup workshopId={id} />
             {docs.length > 0 && <DocsButton open={docsOpen} onToggle={() => setDocsOpen(!docsOpen)} />}
             {helpButton}
           </div>
@@ -172,7 +174,7 @@ export default function StepPage() {
             onSubmit={submit}
             isLastStep={isLastStep}
             readOnly={submitting}
-            feedback={feedback?.stepId === viewed.stepId ? feedback.message : null}
+            feedback={feedback?.stepId === viewed.stepId ? feedback : null}
           />
         }
         docsOpen={docsOpen}

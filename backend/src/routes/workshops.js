@@ -1,6 +1,7 @@
 const express = require('express');
 const prisma = require('../db');
 const { requireAdmin } = require('../middleware/auth');
+const { parseSlug } = require('../workshops/slug');
 const router = express.Router();
 
 const ORDERED = { orderBy: { order: 'asc' } };
@@ -49,11 +50,18 @@ router.patch('/workshops/:id', requireAdmin, async (req, res) => {
   if (icon !== undefined && !isValidIcon(icon)) {
     return res.status(400).json({ error: 'Icon must be a single emoji.' });
   }
-  const workshop = await prisma.workshop.update({
-    where: { id: Number(req.params.id) },
-    data: { title, description, icon },
-  });
-  res.json(workshop);
+  const parsed = req.body && 'slug' in req.body ? parseSlug(req.body.slug) : { slug: undefined };
+  if (parsed.error) return res.status(400).json({ error: parsed.error });
+  try {
+    const workshop = await prisma.workshop.update({
+      where: { id: Number(req.params.id) },
+      data: { title, description, icon, slug: parsed.slug },
+    });
+    res.json(workshop);
+  } catch (err) {
+    if (err.code !== 'P2002') throw err;
+    res.status(409).json({ error: 'Another workshop already uses this slug.' });
+  }
 });
 
 router.delete('/workshops/:id', requireAdmin, async (req, res) => {

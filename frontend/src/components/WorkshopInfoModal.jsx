@@ -14,6 +14,7 @@ export default function WorkshopInfoModal({ workshop, onClose, onSave, onDelete 
   const [icon, setIcon] = useState(workshop?.icon ?? WORKSHOP_ICONS[0]);
   const [title, setTitle] = useState(workshop?.title ?? '');
   const [description, setDescription] = useState(workshop?.description ?? '');
+  const [slug, setSlug] = useState(workshop?.slug ?? '');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -22,7 +23,7 @@ export default function WorkshopInfoModal({ workshop, onClose, onSave, onDelete 
     setSaving(true);
     setError('');
     try {
-      await onSave({ icon: icon.trim(), title: title.trim(), description: description.trim() });
+      await onSave({ icon: icon.trim(), title: title.trim(), description: description.trim(), ...(workshop ? { slug: slug.trim() || null } : {}) });
     } catch (err) {
       setError(err.message);
       setSaving(false);
@@ -76,6 +77,15 @@ export default function WorkshopInfoModal({ workshop, onClose, onSave, onDelete 
           <Label htmlFor="workshop-description">Description</Label>
           <Textarea id="workshop-description" value={description} onChange={(e) => setDescription(e.target.value)} />
         </div>
+        {workshop && (
+          <div className="flex flex-col gap-1">
+            <Label htmlFor="workshop-slug">Slug (for the flag checker)</Label>
+            <Input id="workshop-slug" value={slug} placeholder="git-workshop" onChange={(e) => setSlug(e.target.value)} />
+            <p className="text-xs opacity-70">
+              Must match the SLUG of the student script. Changing it invalidates the codes and flags already given.
+            </p>
+          </div>
+        )}
         {workshop && onDelete && (
           <div className="flex flex-col gap-2 border-2 border-dashed border-brutal-red p-3">
             <p className="text-sm">

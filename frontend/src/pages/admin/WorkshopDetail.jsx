@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { Info, Pencil } from 'lucide-react';
+import { Info, Pencil, Terminal } from 'lucide-react';
 import { Button, buttonVariants } from '../../components/ui/button';
 import WorkshopBrowser from '../../components/WorkshopBrowser';
 import WorkshopInfoModal from '../../components/WorkshopInfoModal';
+import CheckerAdminModal from '../../components/CheckerAdminModal';
 import { withSections } from '@/lib/sections';
 import { api } from '../../api';
 
@@ -17,6 +18,7 @@ export default function WorkshopDetail() {
   const [workshop, setWorkshop] = useState(null);
   const [error, setError] = useState('');
   const [infoOpen, setInfoOpen] = useState(false);
+  const [checkerOpen, setCheckerOpen] = useState(false);
 
   const load = useCallback(() => api.getWorkshop(id).then(setWorkshop), [id]);
 
@@ -57,6 +59,12 @@ export default function WorkshopDetail() {
         actions={
           <>
             <Link to={`/workshops/${id}/review`} className={buttonVariants({ variant: 'neutral' })}>Review answers</Link>
+            {workshop.slug && (
+              <Button variant="neutral" onClick={() => setCheckerOpen(true)}>
+                <Terminal aria-hidden="true" />
+                Checker
+              </Button>
+            )}
             <Button variant="neutral" onClick={() => setInfoOpen(true)}>
               <Info aria-hidden="true" />
               Info
@@ -68,6 +76,7 @@ export default function WorkshopDetail() {
           </>
         }
       />
+      {checkerOpen && <CheckerAdminModal workshop={workshop} onClose={() => setCheckerOpen(false)} />}
       {infoOpen && (
         <WorkshopInfoModal workshop={workshop} onClose={() => setInfoOpen(false)} onSave={saveInfo} onDelete={deleteWorkshop} />
       )}

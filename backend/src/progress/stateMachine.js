@@ -1,5 +1,6 @@
 const { recordEvent } = require('../sessions/sessionEvents');
-const { isRightQcmAnswer, qcmFailureOutcome, DEFAULT_QCM_MESSAGE } = require('./stepVisibility');
+const { isRightQcmAnswer, qcmFailureOutcome, flagFailureOutcome, FLAG_MAX_ATTEMPTS, DEFAULT_QCM_MESSAGE } = require('./stepVisibility');
+const { CheckerError, isRightFlag } = require('../checker/checkerService');
 
 function recordStepEvent(prisma, step, studentId, type, answer = null) {
   return recordEvent(prisma, { workshopId: step.workshopId, studentId, stepId: step.id, type, answer });
@@ -57,6 +58,32 @@ async function gradeQcm(prisma, step, progress, answer) {
   return { ...updated, correct: false, message: step.questionFeedback || DEFAULT_QCM_MESSAGE };
 }
 
+function logFlagSubmission(tx, studentId, stepId, ok) {
+  return tx.flagSubmission.create({ data: { studentId, stepId, ok, createdAt: new Date() } });
+}
+
+async function gradeFlag(prisma, step, progress, answer) {
+  if (progress.failedAttempts >= FLAG_MAX_ATTEMPTS) {
+    throw new CheckerError(429, 'Too many wrong flags. Ask a teacher to unlock this step.');
+  }
+  const ok = await isRightFlag(prisma, step, progress.studentId, answer);
+  if (ok) {
+    const done = await prisma.$transaction(async (tx) => {
+      await logFlagSubmission(tx, progress.studentId, step.id, true);
+      return completeStep(tx, progress, step);
+    });
+    return { ...done, correct: true };
+  }
+  const { failedAttempts, locked } = flagFailureOutcome(progress.failedAttempts);
+  const updated = await prisma.$transaction(async (tx) => {
+    await logFlagSubmission(tx, progress.studentId, step.id, false);
+    if (locked) await recordStepEvent(tx, step, progress.studentId, 'flag_locked');
+    return tx.stepProgress.update({ where: { id: progress.id }, data: { failedAttempts } });
+  });
+  const message = locked ? 'Too many wrong flags. Ask a teacher to unlock this step.' : 'This flag is not the right one.';
+  return { ...updated, correct: false, message, locked };
+}
+
 async function submitAnswer(prisma, stepId, studentId, answer) {
   const progress = await prisma.stepProgress.findFirst({ where: { stepId, studentId } });
   const step = await prisma.step.findUnique({ where: { id: stepId } });
@@ -64,6 +91,7 @@ async function submitAnswer(prisma, stepId, studentId, answer) {
     throw new Error('Step is not available for this student');
   }
   if (step.questionType === 'qcm') return gradeQcm(prisma, step, progress, answer);
+  if (step.questionType === 'flag') return gradeFlag(prisma, step, progress, answer);
   return prisma.$transaction(async (tx) => {
     if (step.questionType !== 'checkpoint') return completeStep(tx, progress, step, answer);
     await recordStepEvent(tx, step, studentId, 'checkpoint_submitted', answer);
@@ -127,4 +155,15 @@ async function resolveQcmAlert(prisma, stepId, studentId) {
   return updated;
 }
 
-module.exports = { ensureProgress, submitAnswer, unlockStep, toggleHelp, unlockSolution, resolveQcmAlert };
+async function resolveFlagLock(prisma, stepId, studentId) {
+  const progress = await findProgressOrThrow(prisma, stepId, studentId);
+  if (progress.failedAttempts < FLAG_MAX_ATTEMPTS) throw new Error('This step is not locked');
+  const step = await prisma.step.findUnique({ where: { id: stepId } });
+  const [updated] = await prisma.$transaction([
+    prisma.stepProgress.update({ where: { id: progress.id }, data: { failedAttempts: 0 } }),
+    recordStepEvent(prisma, step, studentId, 'flag_unlocked'),
+  ]);
+  return updated;
+}
+
+module.exports = { ensureProgress, submitAnswer, unlockStep, toggleHelp, unlockSolution, resolveQcmAlert, resolveFlagLock };

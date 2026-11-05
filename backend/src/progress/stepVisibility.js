@@ -1,5 +1,6 @@
 const QCM_ALERT_AFTER = 2;
 const DEFAULT_QCM_MESSAGE = 'Not quite.';
+const FLAG_MAX_ATTEMPTS = 5;
 
 // Everything a participant may receive about a step: the QCM answer never leaves the
 // server, and the solution only once the host unlocked it or the session is over.
@@ -20,4 +21,18 @@ function qcmFailureOutcome(previousFailures) {
   return { failedAttempts, alert: failedAttempts === QCM_ALERT_AFTER };
 }
 
-module.exports = { participantStep, isRightQcmAnswer, qcmFailureOutcome, QCM_ALERT_AFTER, DEFAULT_QCM_MESSAGE };
+// A wrong flag counts as a failure; at the limit the step locks until an admin resets it.
+function flagFailureOutcome(previousFailures) {
+  const failedAttempts = previousFailures + 1;
+  return { failedAttempts, locked: failedAttempts === FLAG_MAX_ATTEMPTS };
+}
+
+module.exports = {
+  participantStep,
+  isRightQcmAnswer,
+  qcmFailureOutcome,
+  flagFailureOutcome,
+  QCM_ALERT_AFTER,
+  FLAG_MAX_ATTEMPTS,
+  DEFAULT_QCM_MESSAGE,
+};

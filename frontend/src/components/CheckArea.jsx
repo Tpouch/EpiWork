@@ -1,5 +1,6 @@
 import { Check } from 'lucide-react';
 import { Button } from './ui/button';
+import { Input } from './ui/input';
 import { Textarea } from './ui/textarea';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 import { Label } from './ui/label';
@@ -10,13 +11,14 @@ function choicesOf(step) {
 
 function canSubmit(step, answer) {
   if (step.questionType === 'qcm') return Boolean(answer);
-  if (step.questionType === 'question') return answer.trim().length > 0;
+  if (step.questionType === 'question' || step.questionType === 'flag') return answer.trim().length > 0;
   if (step.questionType === 'checkpoint' && step.questionPrompt) return answer.trim().length > 0;
   return true;
 }
 
 function submitLabel(step, isLastStep) {
   if (step.questionType === 'qcm') return 'Check my answer';
+  if (step.questionType === 'flag') return 'Check my flag';
   if (step.questionType === 'checkpoint') return isLastStep ? 'Submit and finish' : 'Submit for review';
   if (isLastStep) return 'Finish workshop';
   return step.questionType === 'question' ? 'Send and continue' : 'Mark done, next step';
@@ -36,6 +38,23 @@ function Question({ step, answer, onAnswerChange, readOnly }) {
           ))}
         </RadioGroup>
       </fieldset>
+    );
+  }
+  if (step.questionType === 'flag') {
+    return (
+      <div className="flex flex-col gap-1">
+        <Label htmlFor="step-answer">{step.questionPrompt || 'Paste the flag printed by ./check'}</Label>
+        <Input
+          id="step-answer"
+          value={answer}
+          onChange={(e) => onAnswerChange(e.target.value)}
+          placeholder="EPI{...}"
+          autoComplete="off"
+          spellCheck={false}
+          disabled={readOnly}
+          className="font-mono"
+        />
+      </div>
     );
   }
   if (!step.questionPrompt) return null;
@@ -68,7 +87,8 @@ export default function CheckArea({ step, status, answer, onAnswerChange, onSubm
       <Question step={step} answer={answer} onAnswerChange={onAnswerChange} readOnly={readOnly} />
       {feedback && (
         <p role="alert" className="border-2 border-brutal-line bg-brutal-orange p-3 font-semibold text-brutal-dark">
-          {feedback} Try again.
+          {feedback.message}
+          {!feedback.locked && ' Try again.'}
         </p>
       )}
       <Button onClick={onSubmit} disabled={readOnly || !canSubmit(step, answer)} className="self-end">
