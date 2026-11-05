@@ -3,10 +3,10 @@ import ActivityCard from './ActivityCard';
 import SectionHeader from './SectionHeader';
 import { Button } from './ui/button';
 
-const CARD_TYPES = new Set(['help_requested', 'qcm_failed', 'checkpoint_submitted', 'step_done']);
+const CARD_TYPES = new Set(['help_requested', 'qcm_failed', 'flag_locked', 'checkpoint_submitted', 'step_done']);
 const FILTERS = {
   All: () => true,
-  Help: (event) => event.type === 'help_requested' || event.type === 'qcm_failed',
+  Help: (event) => ['help_requested', 'qcm_failed', 'flag_locked'].includes(event.type),
   Answers: (event) => event.type === 'checkpoint_submitted' || Boolean(event.answer),
   Done: (event) => event.type === 'step_done',
 };

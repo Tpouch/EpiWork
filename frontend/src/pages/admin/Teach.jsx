@@ -98,7 +98,12 @@ export default function Teach() {
     }
   }
 
-  const RESOLVERS = { help_requested: api.resolveHelp, checkpoint_submitted: api.unlockStep, qcm_failed: api.resolveQcm };
+  const RESOLVERS = {
+    help_requested: api.resolveHelp,
+    checkpoint_submitted: api.unlockStep,
+    qcm_failed: api.resolveQcm,
+    flag_locked: api.resolveFlag,
+  };
 
   // Errors propagate to the card, which shows the backend message.
   async function handleEventAction(event) {

@@ -111,6 +111,10 @@ export const api = {
     request(`/steps/${stepId}/unlock-solution`, { method: 'POST', body: { studentId } }),
   unlockSolutionForAll: (stepId) => request(`/steps/${stepId}/unlock-solution-all`, { method: 'POST', body: {} }),
   resolveQcm: (stepId, studentId) => request(`/steps/${stepId}/resolve-qcm`, { method: 'POST', body: { studentId } }),
+  resolveFlag: (stepId, studentId) => request(`/steps/${stepId}/resolve-flag`, { method: 'POST', body: { studentId } }),
+  myChecker: (workshopId) => request(`/me/workshops/${workshopId}/checker`),
+  workshopChecker: (workshopId) => request(`/workshops/${workshopId}/checker`),
+  checkerTool: (data) => request('/admin/checker/tool', { method: 'POST', body: data }),
   uploadImage: (file) => {
     if (file.size > MAX_UPLOAD_BYTES) return Promise.reject(new Error('Images must be 5 MB or smaller.'));
     return request('/uploads', { method: 'POST', rawBody: file, contentType: file.type });

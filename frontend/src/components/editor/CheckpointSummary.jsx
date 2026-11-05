@@ -3,7 +3,7 @@ import { ListChecks } from 'lucide-react';
 import CheckpointModal from './CheckpointModal';
 import { Button } from '../ui/button';
 
-const TYPE_LABELS = { checkpoint: 'Checkpoint', question: 'Question', qcm: 'QCM' };
+const TYPE_LABELS = { checkpoint: 'Checkpoint', question: 'Question', qcm: 'QCM', flag: 'Flag' };
 
 function describe(step) {
   if (step.questionType === 'checkpoint' && !step.questionPrompt) {
@@ -39,6 +39,7 @@ export default function CheckpointSummary({ step, onSave }) {
               {TYPE_LABELS[step.questionType]}
             </span>
             <p className="mt-1 text-sm">{describe(step)}</p>
+            {step.questionType === 'flag' && <p className="text-xs opacity-70">Exercise id: {step.flagExoId}</p>}
             {step.questionType === 'qcm' && (
               <p className="text-xs opacity-70">
                 {JSON.parse(step.questionOptions).length} choices, right answer: {step.questionAnswer}

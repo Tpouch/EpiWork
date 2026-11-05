@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { CircleDot, ListChecks, MessageSquare, Plus, X } from 'lucide-react';
+import { CircleDot, Flag, ListChecks, MessageSquare, Plus, X } from 'lucide-react';
 import Modal from '../Modal';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -11,6 +11,7 @@ const TYPES = [
   { id: 'checkpoint', label: 'Checkpoint', Icon: ListChecks, help: 'You approve before they move on.' },
   { id: 'question', label: 'Question', Icon: MessageSquare, help: 'Free answer, they move on.' },
   { id: 'qcm', label: 'QCM', Icon: CircleDot, help: 'Graded automatically.' },
+  { id: 'flag', label: 'Flag', Icon: Flag, help: 'They paste the flag of ./check.' },
 ];
 
 // Stable keys so React keeps each choice's input (focus, cursor) when another one is removed.
@@ -25,17 +26,25 @@ function savedChoices(step) {
   return (saved.length >= 2 ? saved : ['', '']).map(newChoice);
 }
 
-function payloadFor(type, { prompt, choices, rightIndex, feedback }) {
-  const cleared = { questionOptions: null, questionAnswer: null, questionFeedback: null };
+function payloadFor(type, { prompt, choices, rightIndex, feedback, exoId }) {
+  const cleared = { questionOptions: null, questionAnswer: null, questionFeedback: null, flagExoId: null };
   if (type === 'checkpoint') return { questionType: type, questionPrompt: prompt.trim() || null, ...cleared };
   if (type === 'question') return { questionType: type, questionPrompt: prompt.trim(), ...cleared };
+  if (type === 'flag') return { questionType: type, questionPrompt: prompt.trim() || null, ...cleared, flagExoId: exoId.trim() };
   return {
     questionType: type,
     questionPrompt: prompt.trim(),
     questionOptions: choices.map((choice) => choice.text.trim()).filter(Boolean),
     questionAnswer: choices[rightIndex]?.text.trim() || null,
     questionFeedback: feedback.trim() || null,
+    flagExoId: null,
   };
+}
+
+function promptLabel(type) {
+  if (type === 'checkpoint') return 'What should the participant send you? (optional)';
+  if (type === 'flag') return 'Instruction (optional)';
+  return 'Question';
 }
 
 export default function CheckpointModal({ step, onClose, onSave }) {
@@ -44,6 +53,7 @@ export default function CheckpointModal({ step, onClose, onSave }) {
   const [choices, setChoices] = useState(() => savedChoices(step));
   const [rightIndex, setRightIndex] = useState(() => savedChoices(step).findIndex((choice) => choice.text === step.questionAnswer));
   const [feedback, setFeedback] = useState(step.questionFeedback ?? '');
+  const [exoId, setExoId] = useState(step.flagExoId ?? '');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -62,7 +72,7 @@ export default function CheckpointModal({ step, onClose, onSave }) {
     setSaving(true);
     setError('');
     try {
-      await onSave(payloadFor(type, { prompt, choices, rightIndex, feedback }));
+      await onSave(payloadFor(type, { prompt, choices, rightIndex, feedback, exoId }));
     } catch (err) {
       setError(err.message);
       setSaving(false);
@@ -72,7 +82,7 @@ export default function CheckpointModal({ step, onClose, onSave }) {
   return (
     <Modal open onClose={onClose} title={step.questionType ? 'Edit the checkpoint' : 'Add a checkpoint'} size="wide">
       <form onSubmit={save} className="flex flex-col gap-4">
-        <div role="radiogroup" aria-label="Check type" className="grid gap-2 sm:grid-cols-3">
+        <div role="radiogroup" aria-label="Check type" className="grid gap-2 sm:grid-cols-2">
           {TYPES.map(({ id, label, Icon, help }) => (
             <button
               key={id}
@@ -95,11 +105,18 @@ export default function CheckpointModal({ step, onClose, onSave }) {
         </div>
         <div className="flex flex-col gap-1">
           <Label htmlFor="check-prompt">
-            {type === 'checkpoint' ? 'What should the participant send you? (optional)' : 'Question'}
+            {promptLabel(type)}
           </Label>
           <Input id="check-prompt" value={prompt} onChange={(e) => setPrompt(e.target.value)} />
           {type === 'checkpoint' && <p className="text-xs opacity-70">Leave it empty for a simple "I'm done" button.</p>}
         </div>
+        {type === 'flag' && (
+          <div className="flex flex-col gap-1">
+            <Label htmlFor="check-exo">Exercise id used by the checker</Label>
+            <Input id="check-exo" value={exoId} placeholder="02" onChange={(e) => setExoId(e.target.value)} />
+            <p className="text-xs opacity-70">The workshop needs a slug (in its info) for the flag to be checked.</p>
+          </div>
+        )}
         {type === 'qcm' && (
           <fieldset className="flex flex-col gap-2">
             <legend className="mb-1 text-sm font-semibold">Choices (select the right answer)</legend>

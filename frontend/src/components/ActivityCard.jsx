@@ -7,6 +7,7 @@ import { useAsyncAction } from '@/lib/useAsyncAction';
 const KINDS = {
   help: { Icon: CircleHelp, color: 'var(--color-brutal-orange)', action: 'Mark resolved', closedLabel: 'resolved' },
   qcm: { Icon: TriangleAlert, color: 'var(--color-brutal-red)', action: 'Mark resolved', closedLabel: 'resolved' },
+  flag: { Icon: TriangleAlert, color: 'var(--color-brutal-red)', action: 'Unlock', closedLabel: 'unlocked' },
   review: { Icon: MessageSquare, color: 'var(--color-brutal-cyan)', action: 'Approve', closedLabel: 'approved' },
   answer: { Icon: MessageSquare, color: 'var(--color-brutal-pink)' },
   done: { Icon: Check, color: 'var(--color-brutal-green)' },
@@ -14,6 +15,7 @@ const KINDS = {
 
 function kindOf(event) {
   if (event.type === 'qcm_failed') return 'qcm';
+  if (event.type === 'flag_locked') return 'flag';
   if (event.type === 'help_requested') return 'help';
   if (event.type === 'checkpoint_submitted') return 'review';
   return event.answer ? 'answer' : 'done';
@@ -23,6 +25,7 @@ function titleOf(event, kind) {
   const name = event.student.name;
   if (kind === 'help') return event.open ? `${name} needs help` : `${name} needed help`;
   if (kind === 'qcm') return `${name} failed a QCM twice`;
+  if (kind === 'flag') return `${name} is locked out of a flag`;
   if (kind === 'review') return `${name} answered a checkpoint`;
   if (kind === 'answer') return `${name} answered a question`;
   return `${name} marked step ${event.step.number} done`;

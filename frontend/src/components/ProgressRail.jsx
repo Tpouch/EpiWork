@@ -9,9 +9,12 @@ const STATUS_STYLES = {
   available: { className: 'bg-brutal-ink text-brutal-bg', label: 'in progress' },
   locked: { className: 'bg-neutral-300 text-brutal-ink', label: 'not started' },
 };
+// Mirrors FLAG_MAX_ATTEMPTS of the backend, like the QCM threshold below.
+const FLAG_LOCK_AT = 5;
 const HELP_STYLE = { className: 'bg-brutal-orange text-brutal-dark', label: 'needs help' };
 const QCM_STYLE = { className: 'bg-brutal-red text-brutal-dark', label: 'failed a QCM twice' };
-const LEGEND = [STATUS_STYLES.available, STATUS_STYLES.pending_review, HELP_STYLE, QCM_STYLE, STATUS_STYLES.done];
+const FLAG_STYLE = { className: 'bg-brutal-red text-brutal-dark', label: 'locked out of a flag' };
+const LEGEND = [STATUS_STYLES.available, STATUS_STYLES.pending_review, HELP_STYLE, QCM_STYLE, FLAG_STYLE, STATUS_STYLES.done];
 
 function initials(name) {
   const words = name.trim().split(/\s+/).filter(Boolean);
@@ -27,7 +30,8 @@ function currentPosition(progress) {
 }
 
 function styleFor(row) {
-  if (row.failedAttempts >= 2) return QCM_STYLE;
+  if (row.step.questionType === 'flag' && row.failedAttempts >= FLAG_LOCK_AT) return FLAG_STYLE;
+  if (row.step.questionType === 'qcm' && row.failedAttempts >= 2) return QCM_STYLE;
   return row.helpRequested ? HELP_STYLE : STATUS_STYLES[row.status] ?? STATUS_STYLES.locked;
 }
 
